@@ -1,0 +1,51 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { buildNav } from "../lib/nav";
+import { withBase } from "../lib/site";
+
+const modules = await buildNav();
+---
+
+<BaseLayout title="Home">
+  <header class="mb-8">
+    <h1 class="text-3xl font-bold text-slate-100">An interactive C++ learning path</h1>
+    <p class="mt-2 text-slate-400 max-w-2xl">
+      Read a short explanation, see a worked example, then write, run, and debug real C/C++ code directly in this
+      page. Exercises are auto-graded against hidden test cases -- no local toolchain required.
+    </p>
+  </header>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    {
+      modules.map((mod) => {
+        const exerciseCount = mod.lessons.reduce((n, l) => n + l.exerciseSlugs.length, 0);
+        const firstLesson = mod.lessons[0];
+        const href = firstLesson ? withBase(`/lessons/${firstLesson.slug}/`) : undefined;
+        const card = (
+          <div class="h-full rounded-lg border border-slate-800 bg-slate-900/40 p-4 flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <h2 class="font-semibold text-slate-100">{mod.title}</h2>
+              <span
+                class:list={[
+                  "text-[10px] uppercase tracking-wide rounded-full px-2 py-0.5 border",
+                  mod.status === "available"
+                    ? "border-emerald-700 text-emerald-400"
+                    : "border-slate-700 text-slate-500",
+                ]}
+              >
+                {mod.status === "available" ? "available" : "coming soon"}
+              </span>
+            </div>
+            <p class="text-sm text-slate-400 flex-1">{mod.description}</p>
+            {mod.status === "available" && (
+              <p class="text-xs text-slate-500">
+                {mod.lessons.length} lessons · {exerciseCount} exercises
+              </p>
+            )}
+          </div>
+        );
+        return href ? <a href={href}>{card}</a> : card;
+      })
+    }
+  </div>
+</BaseLayout>

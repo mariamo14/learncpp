@@ -1,0 +1,72 @@
+---
+title: "printf, scanf & Overflow"
+module: "01-c-foundations"
+order: 3
+summary: "Reading format strings precisely, formatting numeric output, and what actually happens when a value doesn't fit in its type."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+    #include <limits.h>
+
+    int main(void) {
+        int max = INT_MAX;
+        printf("INT_MAX       = %d\n", max);
+        printf("INT_MAX + 1   = %d   (signed overflow: undefined behavior)\n", max + 1);
+
+        unsigned int umax = UINT_MAX;
+        printf("UINT_MAX      = %u\n", umax);
+        printf("UINT_MAX + 1  = %u   (unsigned wraparound: well-defined)\n", umax + 1);
+        return 0;
+    }
+---
+
+## Why this matters
+
+`printf` and `scanf` are how a C program talks to the outside world, and they're driven entirely by *format
+strings* -- little mini-languages of their own where getting one character wrong (`%d` instead of `%u`, forgetting
+the `l` in `%lf`) produces a program that compiles cleanly and then prints garbage or crashes. Meanwhile, every
+integer type has a fixed range, and what happens when you cross it depends entirely on whether the type is signed
+or unsigned -- one of the sharpest edges in the language.
+
+## Reading `printf` format specifiers
+
+A specifier is `%`, optional flags/width/precision, then a *conversion character* that must match the argument's
+type:
+
+- `%d` / `%i` -- signed `int`
+- `%u` -- unsigned `int`
+- `%f` -- `double` (yes, `%f`, not `%lf` -- see below)
+- `%c` -- a single `char`
+- `%s` -- a null-terminated `char*` string
+- `%.2f` -- a `double`, rounded to 2 digits after the decimal point
+- `%5d` -- an `int`, right-padded with spaces to at least 5 characters wide
+
+The compiler does **not** check that your arguments match your format string in plain C (some compilers warn, but
+it's not an error) -- passing an `int` where `%f` expects a `double` reads the wrong bytes off the argument stack
+and prints nonsense. This is a real, common bug class, not a hypothetical one.
+
+## `scanf`'s format specifiers don't always match `printf`'s
+
+This is the single most common `scanf` mistake: reading a `double` requires `%lf`, but *printing* a `double` uses
+plain `%f`. `scanf` needs the `l` to know how many bytes to write into your variable; `printf` doesn't need it
+because `float` arguments are automatically promoted to `double` when passed through `...` (a variadic function),
+so there's only one floating-point case to handle on the output side.
+
+`scanf` also returns the number of items it successfully parsed -- checking that return value (`if (scanf("%d", &n)
+!= 1)`) is how real programs detect malformed input, though our exercises assume well-formed input to keep the
+focus on formatting itself.
+
+## Signed overflow is undefined behavior; unsigned overflow is not
+
+This is the most important distinction in the lesson. `INT_MAX + 1` (adding 1 to the largest representable `int`)
+is **undefined behavior** in C: the standard makes no promise about what happens. In practice, with common compiler
+settings, you'll often *see* it wrap around to `INT_MIN`, but the compiler is also legally allowed to assume signed
+overflow never happens and optimize your code on that assumption -- which has caused real security bugs when
+overflow checks like `if (x + 1 < x)` got silently deleted.
+
+Unsigned integers are the opposite: arithmetic on `unsigned int` is defined to wrap modulo 2³² (on a 32-bit
+unsigned int). `UINT_MAX + 1` is guaranteed, by the standard, to be exactly `0`. The worked example prints both
+side by side -- run it and see the signed case do something that looks reasonable on this compiler, then remember
+that "looks reasonable" and "is guaranteed" are very different claims.

@@ -1,0 +1,6 @@
+{
+  "title": "Operator Overloading & Resource Management",
+  "order": 5,
+  "description": "Copy semantics, the rule of three/five, RAII, and namespaces.",
+  "status": "coming-soon"
+}

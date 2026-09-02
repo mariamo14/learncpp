@@ -1,0 +1,6 @@
+{
+  "title": "Modern C++ & Numerical Building Blocks",
+  "order": 9,
+  "description": "Smart pointers, <random>, <chrono>, and basic statistics / Monte-Carlo-flavored numerical exercises.",
+  "status": "coming-soon"
+}

@@ -1,0 +1,6 @@
+{
+  "title": "The STL",
+  "order": 8,
+  "description": "vector, map, iterators, algorithms, lambdas, and function objects.",
+  "status": "coming-soon"
+}

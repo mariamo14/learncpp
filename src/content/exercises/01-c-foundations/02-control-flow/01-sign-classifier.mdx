@@ -1,0 +1,54 @@
+---
+title: "Sign Classifier"
+lesson: "01-c-foundations/02-control-flow"
+order: 1
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+
+      // TODO: print exactly one of: Positive / Negative / Zero
+      return 0;
+  }
+tests:
+  - name: "sample: 7"
+    stdin: "7"
+    expectedOutput: "Positive"
+    hidden: false
+  - name: "negative"
+    stdin: "-3"
+    expectedOutput: "Negative"
+    hidden: true
+  - name: "zero"
+    stdin: "0"
+    expectedOutput: "Zero"
+    hidden: true
+hints:
+  - "Three mutually exclusive outcomes means an if / else if / else chain, not three separate if statements."
+  - "Check == 0 before checking the sign, or check it last with a plain else -- either order works as long as all three cases are covered exactly once."
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      if (n > 0) {
+          printf("Positive\n");
+      } else if (n < 0) {
+          printf("Negative\n");
+      } else {
+          printf("Zero\n");
+      }
+      return 0;
+  }
+---
+
+Read one integer and print exactly one word describing its sign: `Positive`, `Negative`, or `Zero`.
+
+This is the smallest possible `if`/`else if`/`else` chain, but it's worth building deliberately: three outcomes
+that can never overlap should be three branches of *one* chain, not three independent `if` statements that each
+re-check the same variable.

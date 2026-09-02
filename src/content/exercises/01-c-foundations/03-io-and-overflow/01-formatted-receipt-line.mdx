@@ -1,0 +1,65 @@
+---
+title: "Formatted Receipt Line"
+lesson: "01-c-foundations/03-io-and-overflow"
+order: 1
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      char item[64];
+      double price;
+      scanf("%63s %lf", item, &price);
+
+      // TODO: print exactly two lines:
+      //   Item: <item>
+      //   Price: $<price, 2 decimal places>
+      return 0;
+  }
+tests:
+  - name: "sample: widget 4.5"
+    stdin: "widget 4.5"
+    expectedOutput: |
+      Item: widget
+      Price: $4.50
+    hidden: false
+  - name: "already 2 decimals"
+    stdin: "cable 12.99"
+    expectedOutput: |
+      Item: cable
+      Price: $12.99
+    hidden: true
+  - name: "needs rounding"
+    stdin: "battery 3.333"
+    expectedOutput: |
+      Item: battery
+      Price: $3.33
+    hidden: true
+hints:
+  - "%s reads into a plain char array (no & needed, since the array name already decays to a pointer) and stops at whitespace -- that's why item is a single word here, not a full string."
+  - "%.2f formats a double to exactly 2 digits after the decimal point, padding with zeros if needed -- 4.5 becomes 4.50, not 4.5."
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      char item[64];
+      double price;
+      scanf("%63s %lf", item, &price);
+      printf("Item: %s\n", item);
+      printf("Price: $%.2f\n", price);
+      return 0;
+  }
+---
+
+Read an item name (a single word, no spaces) and a price, then print exactly:
+
+```
+Item: widget
+Price: $4.50
+```
+
+Notice `%63s` in the starter code, not bare `%s` -- always bound a `scanf` string read with a width limit one less
+than your buffer size, or a longer-than-expected input word will write past the end of `item` and corrupt memory.
+This is your first real look at "the compiler will not save you" -- `scanf("%s", item)` compiles fine and is a
+buffer overflow waiting to happen.

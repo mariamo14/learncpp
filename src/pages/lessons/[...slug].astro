@@ -1,0 +1,68 @@
+---
+import { getCollection, getEntry, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import SnippetRunner from "../../components/SnippetRunner.tsx";
+import { withBase } from "../../lib/site";
+
+export async function getStaticPaths() {
+  const lessons = await getCollection("lessons");
+  return lessons.map((lesson) => ({
+    params: { slug: lesson.id },
+    props: { lessonId: lesson.id },
+  }));
+}
+
+const { lessonId } = Astro.props;
+const lesson = await getEntry("lessons", lessonId);
+if (!lesson) throw new Error(`Lesson not found: ${lessonId}`);
+const { Content } = await render(lesson);
+
+const moduleEntry = await getEntry("modules", lesson.data.module);
+const exercises = (await getCollection("exercises"))
+  .filter((ex) => ex.data.lesson === lessonId)
+  .sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout title={lesson.data.title} currentLessonSlug={lessonId}>
+  <p class="text-xs text-slate-500 mb-1">{moduleEntry?.data.title}</p>
+  <h1 class="text-2xl font-bold text-slate-100 mb-6">{lesson.data.title}</h1>
+
+  <div class="grid gap-6 lg:grid-cols-2 items-start">
+    <article class="lesson-prose">
+      <Content />
+    </article>
+    <div class="lg:sticky lg:top-6">
+      <SnippetRunner
+        client:load
+        code={lesson.data.example.code}
+        stdin={lesson.data.example.stdin}
+        language={lesson.data.example.language}
+      />
+    </div>
+  </div>
+
+  {
+    exercises.length > 0 && (
+      <section class="mt-10">
+        <h2 class="text-lg font-semibold text-slate-100 mb-3">Exercises</h2>
+        <ul class="grid gap-2 sm:grid-cols-2">
+          {exercises.map((ex) => (
+            <li>
+              <a
+                href={withBase(`/exercises/${ex.id}/`)}
+                class="block rounded-md border border-slate-800 bg-slate-900/40 p-3 hover:border-cyan-700"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-slate-200">{ex.data.title}</span>
+                  <span class="text-[10px] uppercase tracking-wide rounded-full border border-slate-700 text-slate-400 px-2 py-0.5">
+                    {ex.data.difficulty}
+                  </span>
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+</BaseLayout>

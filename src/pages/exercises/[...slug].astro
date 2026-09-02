@@ -1,0 +1,51 @@
+---
+import { getCollection, getEntry, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ExerciseWorkspace from "../../components/ExerciseWorkspace.tsx";
+import { withBase } from "../../lib/site";
+
+export async function getStaticPaths() {
+  const exercises = await getCollection("exercises");
+  return exercises.map((ex) => ({
+    params: { slug: ex.id },
+    props: { exerciseId: ex.id },
+  }));
+}
+
+const { exerciseId } = Astro.props;
+const exercise = await getEntry("exercises", exerciseId);
+if (!exercise) throw new Error(`Exercise not found: ${exerciseId}`);
+const { Content } = await render(exercise);
+
+const lesson = await getEntry("lessons", exercise.data.lesson);
+---
+
+<BaseLayout title={exercise.data.title} currentLessonSlug={exercise.data.lesson}>
+  <p class="text-xs text-slate-500 mb-1">
+    {lesson && (
+      <a href={withBase(`/lessons/${lesson.id}/`)} class="hover:text-cyan-400">
+        ← {lesson.data.title}
+      </a>
+    )}
+  </p>
+  <div class="flex items-center gap-2 mb-4">
+    <h1 class="text-2xl font-bold text-slate-100">{exercise.data.title}</h1>
+    <span class="text-[10px] uppercase tracking-wide rounded-full border border-slate-700 text-slate-400 px-2 py-0.5">
+      {exercise.data.difficulty}
+    </span>
+  </div>
+
+  <article class="lesson-prose mb-6">
+    <Content />
+  </article>
+
+  <ExerciseWorkspace
+    client:load
+    slug={exerciseId}
+    starter={exercise.data.starter}
+    tests={exercise.data.tests}
+    hints={exercise.data.hints}
+    solution={exercise.data.solution}
+    language={exercise.data.language}
+  />
+</BaseLayout>

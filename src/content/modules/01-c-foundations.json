@@ -1,0 +1,6 @@
+{
+  "title": "C Foundations",
+  "order": 1,
+  "description": "Variables, operators and precedence, control flow, printf/scanf, and how the primitive types actually behave (including overflow).",
+  "status": "available"
+}

@@ -1,0 +1,69 @@
+---
+title: "Variables, Types & Operators"
+module: "01-c-foundations"
+order: 1
+summary: "What a variable actually is in memory, the primitive types C gives you, and how operator precedence decides what an expression means."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+
+    int main(void) {
+        int base_price = 40;
+        int quantity = 3;
+        double discount = 0.15;
+
+        double subtotal = base_price * quantity;
+        double total = subtotal - subtotal * discount;
+
+        printf("subtotal = %.2f\n", subtotal);
+        printf("total after discount = %.2f\n", total);
+        return 0;
+    }
+---
+
+## Why this matters
+
+A variable is not a name for a value -- it's a name for a *box of a fixed size* somewhere in memory. Declaring
+`int quantity` doesn't just say "quantity is a number," it reserves a specific number of bytes (4, on almost every
+platform you'll touch) and tells the compiler how to interpret whatever bit pattern lives there. Every bug involving
+"why is this number wrong" in a C or C++ program traces back to one of three things: the box was the wrong size, it
+held the wrong bit pattern, or an expression combined boxes in an order you didn't expect. This lesson is about all
+three.
+
+## The primitive types
+
+C's built-in types describe *storage*, not just *meaning*:
+
+- `int` -- a signed whole number, almost always 4 bytes (32 bits) on modern machines, giving a range of roughly
+  -2.1 billion to 2.1 billion.
+- `char` -- 1 byte. It's simultaneously "a small integer" and "a character," because a `char` *is* an integer whose
+  value is interpreted as a position in a character encoding (ASCII, typically).
+- `double` -- 8 bytes, a floating-point number with about 15-17 significant decimal digits of precision.
+- `float` -- 4 bytes, floating-point with roughly 6-9 significant digits. Prefer `double` unless you have a specific
+  reason (memory pressure, matching a hardware format) to use `float`.
+
+Each of these also comes in `unsigned` and `signed` variants for the integer types, which change how the same bits
+are interpreted -- not how many bits are used.
+
+## Operator precedence is a parsing rule, not a math rule
+
+`a + b * c` evaluates as `a + (b * c)` because `*` binds tighter than `+` -- this matches the math you already know.
+But C has operators math doesn't: `%` (modulo) binds at the same level as `*` and `/`, and comparison operators like
+`<` bind *looser* than arithmetic, which occasionally surprises people writing conditions like `if (a < b + 1)`
+(that's fine -- `b + 1` happens first) versus `if (a & mask == 0)` (that's a classic bug: `==` binds tighter than
+`&`, so this parses as `a & (mask == 0)`, not `(a & mask) == 0`).
+
+The worked example on the right computes a discounted total. Notice `subtotal - subtotal * discount`: without
+precedence, you might expect strict left-to-right evaluation to compute `(subtotal - subtotal) * discount`, which
+would always be zero. Because `*` binds tighter than `-`, it actually computes `subtotal - (subtotal * discount)`,
+which is the discount you want. Run it, then try changing `discount` to see the total move.
+
+## Implicit conversion
+
+`base_price * quantity` multiplies two `int`s and produces an `int`. Assigning that `int` to a `double subtotal`
+converts it automatically -- this is *implicit conversion*, and it's usually what you want. The dangerous direction
+is the reverse: assigning a `double` to an `int` silently truncates the fractional part instead of rounding. Try
+predicting the output of `int x = 7 / 2;` versus `double x = 7 / 2;` before you run it -- the division happens
+*before* any conversion to `double`, so both do integer division.
