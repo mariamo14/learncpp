@@ -1,0 +1,95 @@
+---
+title: "Reverse In Place"
+lesson: "02-functions-arrays-pointers/02-arrays-and-pointer-arithmetic"
+order: 3
+difficulty: "hard"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  void reverse(int *arr, int length) {
+      // TODO: reverse arr in place using two pointers/indices that move
+      // toward each other from both ends, swapping as they go. Don't
+      // allocate a second array.
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      int values[100];
+      for (int i = 0; i < n; i++) {
+          scanf("%d", &values[i]);
+      }
+
+      reverse(values, n);
+
+      for (int i = 0; i < n; i++) {
+          printf("%d", values[i]);
+          if (i < n - 1) printf(" ");
+      }
+      printf("\n");
+      return 0;
+  }
+tests:
+  - name: "sample: 5 values"
+    stdin: "5\n1 2 3 4 5"
+    expectedOutput: "5 4 3 2 1"
+    hidden: false
+  - name: "single element (unchanged)"
+    stdin: "1\n7"
+    expectedOutput: "7"
+    hidden: true
+  - name: "even length"
+    stdin: "4\n10 20 30 40"
+    expectedOutput: "40 30 20 10"
+    hidden: true
+  - name: "empty array"
+    stdin: "0"
+    expectedOutput: ""
+    hidden: true
+hints:
+  - "Keep a `left` index starting at 0 and a `right` index starting at length - 1. Swap arr[left] and arr[right], then move left forward and right backward."
+  - "Stop when left >= right -- for an odd-length array the middle element ends up compared against itself and correctly left alone; for even length the two middle elements just get swapped like any other pair."
+  - "A single element or an empty array should both be no-ops -- trace what your loop condition does when length is 1 or 0 before assuming there's a bug."
+solution: |
+  #include <stdio.h>
+
+  void reverse(int *arr, int length) {
+      int left = 0;
+      int right = length - 1;
+      while (left < right) {
+          int temp = arr[left];
+          arr[left] = arr[right];
+          arr[right] = temp;
+          left++;
+          right--;
+      }
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      int values[100];
+      for (int i = 0; i < n; i++) {
+          scanf("%d", &values[i]);
+      }
+
+      reverse(values, n);
+
+      for (int i = 0; i < n; i++) {
+          printf("%d", values[i]);
+          if (i < n - 1) printf(" ");
+      }
+      printf("\n");
+      return 0;
+  }
+---
+
+Implement `reverse` to reverse the array **in place** -- modify `arr` through its pointer directly, without
+allocating a second array to copy into.
+
+The standard technique is two indices (or, equivalently, two pointers) starting at opposite ends and walking
+toward each other, swapping as they go, stopping once they meet or cross. This "converge from both ends" pattern
+shows up again for palindrome checks, partitioning, and quicksort -- worth having solid here. Trace it by hand on a
+4-element and a 5-element array before coding: does your stopping condition (`left < right`) correctly leave a
+lone middle element alone in the odd case?

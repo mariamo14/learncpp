@@ -1,0 +1,75 @@
+---
+title: "Divide With Remainder"
+lesson: "02-functions-arrays-pointers/01-functions-and-pointers"
+order: 2
+difficulty: "medium"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  void divmod(int a, int b, int *quotient, int *remainder) {
+      // TODO: write a's quotient and remainder (dividing by b) through
+      // the two out-parameters. Use C's own / and % -- don't reimplement
+      // division by hand.
+  }
+
+  int main(void) {
+      int a, b;
+      scanf("%d %d", &a, &b);
+
+      int q, r;
+      divmod(a, b, &q, &r);
+      printf("Quotient: %d\n", q);
+      printf("Remainder: %d\n", r);
+      return 0;
+  }
+tests:
+  - name: "sample: 17 5"
+    stdin: "17 5"
+    expectedOutput: |
+      Quotient: 3
+      Remainder: 2
+    hidden: false
+  - name: "exact division"
+    stdin: "20 4"
+    expectedOutput: |
+      Quotient: 5
+      Remainder: 0
+    hidden: true
+  - name: "negative dividend"
+    stdin: "-17 5"
+    expectedOutput: |
+      Quotient: -3
+      Remainder: -2
+    hidden: true
+hints:
+  - "*quotient = a / b; *remainder = a % b; -- that's the entire function body. The interesting part is the out-parameters, not the arithmetic."
+  - "Two out-parameters means two pointer parameters, each written through exactly once."
+solution: |
+  #include <stdio.h>
+
+  void divmod(int a, int b, int *quotient, int *remainder) {
+      *quotient = a / b;
+      *remainder = a % b;
+  }
+
+  int main(void) {
+      int a, b;
+      scanf("%d %d", &a, &b);
+
+      int q, r;
+      divmod(a, b, &q, &r);
+      printf("Quotient: %d\n", q);
+      printf("Remainder: %d\n", r);
+      return 0;
+  }
+---
+
+`divmod` needs to hand back *two* results from one call -- a quotient and a remainder -- and a C function can only
+`return` one value. Complete it using the two pointer out-parameters `quotient` and `remainder`: write each result
+through its pointer rather than returning anything.
+
+The arithmetic itself is just `/` and `%`; the exercise is entirely about the out-parameter mechanics. Note the
+last sample case: since C99, `/` truncates toward zero and `%` follows it, so `-17 / 5` is `-3` (not `-4`) and
+`-17 % 5` is `-2` (not `3`) -- this is guaranteed by the standard, not a compiler quirk, so you can rely on `a / b`
+and `a % b` giving you these exact values without any special-casing.

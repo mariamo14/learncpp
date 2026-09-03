@@ -1,0 +1,82 @@
+---
+title: "Dynamic Memory: malloc, free & the Stack vs. the Heap"
+module: "02-functions-arrays-pointers"
+order: 3
+summary: "Why `int values[n]` doesn't work when n isn't known at compile time, and the manual allocate/free discipline C requires instead."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+    #include <stdlib.h>
+
+    int main(void) {
+        int n = 5;
+        int *squares = malloc(n * sizeof(int));
+        if (squares == NULL) {
+            fprintf(stderr, "allocation failed\n");
+            return 1;
+        }
+
+        for (int i = 0; i < n; i++) {
+            squares[i] = i * i;
+        }
+
+        for (int i = 0; i < n; i++) {
+            printf("%d ", squares[i]);
+        }
+        printf("\n");
+
+        free(squares);
+        return 0;
+    }
+---
+
+## Why this matters
+
+`int values[5];` works because the compiler knows the size at compile time and can reserve exactly that much space
+on the **stack** -- the region of memory that grows and shrinks automatically as functions are called and return.
+But what if the size isn't known until the program is running -- read from input, computed from other data? You
+need memory that outlives any one function's stack frame and whose size you choose at runtime. That's the
+**heap**, and in C, you manage it entirely by hand with `malloc` and `free`. There's no garbage collector watching
+your back -- forgetting to `free` leaks memory for the life of the program, and using memory after you've freed it
+is undefined behavior.
+
+## The stack: automatic, fast, and gone when the function returns
+
+Every local variable you've written so far -- `int n;`, `int values[100];` -- lives on the stack, inside the
+current function's *stack frame*. That frame is created when the function is called and destroyed the instant it
+returns. This is why you can never return a pointer to a local variable: the memory it pointed to no longer exists
+once the function is done. The stack is also comparatively small (often a few megabytes) and its size is fixed at
+thread-creation time -- a large `int values[1000000]` as a local variable can overflow it.
+
+## The heap: manual, flexible, and yours until you free it
+
+`malloc(size)` asks the heap allocator for `size` bytes and returns a `void*` pointer to the start of that block --
+or `NULL` if the request couldn't be satisfied. That memory is *not* tied to any function's stack frame: it stays
+allocated, and valid to use, until you explicitly call `free()` on the same pointer. This is what lets you return
+heap-allocated data from a function, or size an array by a value that only exists at runtime.
+
+## Reading the worked example
+
+`malloc(n * sizeof(int))` requests enough bytes for `n` integers -- note `sizeof(int)`, not a hardcoded `4`; sizes
+of primitive types aren't guaranteed identical across every platform, and `sizeof` is always correct for whatever
+platform you're compiling on. `malloc` returns `void*`, which converts implicitly to `int*` here (C, unlike C++,
+allows this without an explicit cast). **Always check the result against `NULL`** before using it -- allocation can
+fail, and dereferencing a `NULL` pointer crashes the program. Once you're done with the block, `free(squares)`
+returns it to the allocator; after that call, `squares` is a "dangling pointer" -- still holding the old address,
+but no longer valid to read, write, or free again.
+
+## Three rules that prevent almost every heap bug
+
+1. **Every successful `malloc` needs exactly one matching `free`.** Zero `free`s is a leak; more than one on the
+   same pointer ("double free") is undefined behavior.
+2. **Never use a pointer after freeing it.** If you might need the value again, copy it out, or set the pointer to
+   `NULL` after freeing so an accidental later use fails loudly (dereferencing `NULL` crashes immediately, rather
+   than corrupting memory silently).
+3. **Always check `malloc`'s return value for `NULL`** before writing through the pointer, even though it's easy
+   to skip when you're confident the allocation is small.
+
+The exercises ahead have you allocate, fill, use, and free heap arrays -- and one has you `realloc` a block to grow
+it, which is the same idea with one extra rule: `realloc` may move the block to a new address, so you must always
+capture its return value rather than assuming the old pointer is still valid.

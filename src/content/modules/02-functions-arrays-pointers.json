@@ -2,5 +2,5 @@
   "title": "Functions, Arrays & Pointers",
   "order": 2,
   "description": "Pass-by-value vs. pass-by-reference, arrays, pointer arithmetic, malloc/free, and the stack vs. the heap.",
-  "status": "coming-soon"
+  "status": "available"
 }
