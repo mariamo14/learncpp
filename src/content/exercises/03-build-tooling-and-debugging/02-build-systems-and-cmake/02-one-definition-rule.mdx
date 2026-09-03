@@ -1,0 +1,63 @@
+---
+title: "Fix: One Definition Rule"
+lesson: "03-build-tooling-and-debugging/02-build-systems-and-cmake"
+order: 2
+difficulty: "medium"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int is_even(int n) {
+      return n % 2 == 1;
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      printf("%s\n", is_even(n) ? "Even" : "Odd");
+      return 0;
+  }
+
+  int is_even(int n) {
+      return n % 2 == 0;
+  }
+tests:
+  - name: "sample: 4"
+    stdin: "4"
+    expectedOutput: "Even"
+    hidden: false
+  - name: "odd"
+    stdin: "7"
+    expectedOutput: "Odd"
+    hidden: true
+  - name: "zero is even"
+    stdin: "0"
+    expectedOutput: "Even"
+    hidden: true
+hints:
+  - "This won't even compile yet -- submit it and read the error. 'redefinition of' names the function that's defined twice, and a note points at the earlier definition it conflicts with."
+  - "There are two definitions of is_even in this file, and they disagree: one of them has its comparison backwards. A file may define a function exactly once -- delete the wrong definition entirely, don't just edit both."
+  - "n % 2 == 0 is the correct condition for 'even'. Whichever definition says == 1 is the one to remove."
+solution: |
+  #include <stdio.h>
+
+  int is_even(int n) {
+      return n % 2 == 0;
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      printf("%s\n", is_even(n) ? "Even" : "Odd");
+      return 0;
+  }
+---
+
+This file defines `is_even` **twice**, with two different (and disagreeing) implementations -- one is correct, one
+has its condition backwards. C's one-definition rule means a function may be defined exactly once per program;
+having two, even if one were correct, is a compile error regardless of which one you'd actually want to call.
+
+Submit as-is, read the "redefinition of `is_even`" error, then fix the file so it contains exactly one definition
+of `is_even` -- the correct one. This is the single-file version of the bug real header-based projects avoid by
+keeping function *bodies* out of headers entirely (as covered in the lesson): if a body lived in a header and two
+`.c` files included it, you'd get this exact error the moment both were compiled together.

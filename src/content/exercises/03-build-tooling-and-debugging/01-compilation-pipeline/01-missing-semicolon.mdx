@@ -1,0 +1,52 @@
+---
+title: "Fix: Missing Semicolon"
+lesson: "03-build-tooling-and-debugging/01-compilation-pipeline"
+order: 1
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      double celsius;
+      scanf("%lf", &celsius)
+      double fahrenheit = celsius * 9.0 / 5.0 + 32.0;
+      printf("Fahrenheit: %.1f\n", fahrenheit);
+      return 0;
+  }
+tests:
+  - name: "sample: 0"
+    stdin: "0"
+    expectedOutput: "Fahrenheit: 32.0"
+    hidden: false
+  - name: "100"
+    stdin: "100"
+    expectedOutput: "Fahrenheit: 212.0"
+    hidden: true
+  - name: "the crossover point"
+    stdin: "-40"
+    expectedOutput: "Fahrenheit: -40.0"
+    hidden: true
+hints:
+  - "Click Submit (or Run) first and read the actual compiler error before changing anything -- this exercise is about reading that message, not guessing."
+  - "The error will point at the line *after* the mistake (probably the `double fahrenheit = ...` line) -- when that happens, check the line above it first."
+  - "The fix is one character: a missing ; at the end of the scanf line."
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      double celsius;
+      scanf("%lf", &celsius);
+      double fahrenheit = celsius * 9.0 / 5.0 + 32.0;
+      printf("Fahrenheit: %.1f\n", fahrenheit);
+      return 0;
+  }
+---
+
+This program converts a Celsius temperature to Fahrenheit and prints it as `Fahrenheit: 32.0` -- but it doesn't
+compile yet. Submit it as-is first and actually read the error message you get back, then fix the program so it
+compiles and produces the right output.
+
+This is the exact error from the lesson: a missing semicolon reported one line later than the actual mistake,
+because the compiler can't tell a statement was supposed to end until it starts parsing the next one and finds
+something that doesn't fit.

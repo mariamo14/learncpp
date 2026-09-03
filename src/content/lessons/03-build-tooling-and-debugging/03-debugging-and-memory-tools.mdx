@@ -1,0 +1,101 @@
+---
+title: "Debugging with gdb/lldb & Memory-Checking Tools"
+module: "03-build-tooling-and-debugging"
+order: 3
+summary: "What a debugger session actually looks like, assert() as a debugger you always have, and what ASan/valgrind catch that reading code by eye usually can't."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+    #include <assert.h>
+
+    double safe_divide(double numerator, double denominator) {
+        assert(denominator != 0.0 && "denominator must not be zero");
+        return numerator / denominator;
+    }
+
+    int main(void) {
+        printf("%.2f\n", safe_divide(10.0, 4.0));
+        return 0;
+    }
+---
+
+## Why this matters
+
+Every bug so far in this course has been small enough to spot by reading the code. That stops being true fast --
+real bugs hide in state that changes over many steps, and "stare at the source until it's obvious" stops working.
+The tools in this lesson exist for exactly that gap: a debugger lets you *watch* a program's state as it runs
+instead of just imagining it; `assert` gives you an always-available, zero-setup way to make a wrong assumption
+fail loudly, immediately, at its source; and memory checkers like ASan and valgrind catch an entire category of bug
+-- memory misuse -- that can execute perfectly normally for a while before it corrupts something.
+
+## What a debugger session looks like
+
+A debugger (`gdb` on Linux, `lldb` on macOS -- same ideas, different command names) lets you pause a running
+program at a specific line and inspect it. You can't run one inside this browser, so here's an annotated, read-only
+transcript of a real session -- diagnosing a function that's supposed to sum an array but returns a total that's
+consistently too small:
+
+```
+(gdb) break main          # pause execution as soon as main starts
+(gdb) run 4                # start the program; it stops immediately, before line 1 of main runs
+(gdb) next                 # step over one line at a time (into the loop)
+(gdb) next
+(gdb) print i               # $1 = 0            <- loop variable, as expected
+(gdb) print total           # $2 = 0            <- nothing added yet, as expected
+(gdb) next
+(gdb) next
+(gdb) print i               # $3 = 1
+(gdb) print total           # $4 = 10           <- values[0] was added; looks right so far
+...
+(gdb) print i               # $7 = 3            <- but n was 4 -- the loop already stopped
+(gdb) print total           # $8 = 60           <- values[3] was never added
+```
+
+Nothing here is exotic: `break` sets a stopping point, `run` starts the program, `next` executes one line and
+stops again, and `print` shows a variable's current value. What makes it powerful is watching `i` and `total`
+*together*, step by step, until the exact moment they diverge from what you expected -- here, the loop stopping at
+`i == 3` instead of running through `i == 3` reveals a `<` that should have been `<=`, or an off-by-one in the
+bound, without needing to guess from the wrong final answer alone. This is the second exercise below, framed
+exactly this way: given the "trace," find and fix the bound.
+
+## `assert`: a debugger you don't have to attach
+
+`assert(condition)`, from `<assert.h>`, does one thing: if `condition` is false when execution reaches it, the
+program prints a message naming the failed condition, the file, and the line, and stops immediately via `abort()`.
+If it's true, `assert` does nothing at all -- no output, no cost beyond the check itself.
+
+The worked example uses it to state an assumption out loud: `safe_divide` requires a nonzero denominator, and
+`assert` makes that requirement *enforced*, not just implied by a comment. The value isn't stylistic. Compare two
+failure modes: without the assert, dividing by zero produces a garbage or infinite result that gets used, printed,
+and possibly fed into more computation before anyone notices something's wrong, far from where the actual mistake
+was made. With the assert, the program stops at the exact call that violated the assumption, with a message naming
+exactly which assumption failed. **A loud failure at the source of the bug is always easier to debug than a silent
+one that surfaces somewhere else entirely** -- this is the same principle a debugger breakpoint gives you
+manually, built into the language for free.
+
+## What ASan and valgrind catch that reading code doesn't
+
+Module 2 covered the rules for heap memory by hand: free exactly once, never use a pointer after freeing it, always
+check `malloc`'s result. Breaking those rules is frequently *invisible* when you test a program normally -- reading
+freed memory often still returns the old bytes, unchanged, until something else happens to reuse that address. The
+bug is real the instant you break the rule; the visible symptom might not appear until much later, in a completely
+different part of the program, which makes it one of the hardest bug classes to trace back by reading code alone.
+
+**AddressSanitizer (ASan)** and **valgrind** are tools that watch every memory access *while the program runs* and
+flag a violation the instant it happens, rather than however much later a symptom might appear -- a
+use-after-free, a double-free, a heap write past the end of an allocation, or memory that was `malloc`'d and never
+`free`'d. Neither can run inside this browser (they need to instrument a real running process on your machine, not
+a remote one-shot compile-and-run call), but they're standard tools once you're compiling locally:
+
+```
+gcc -fsanitize=address,undefined -g program.c -o program && ./program
+valgrind --leak-check=full ./program
+```
+
+Not every bug is a memory bug, though -- some of the strangest ones live in *state* that quietly outlives the call
+that set it, which no memory checker flags because nothing about it is memory-unsafe. The hardest exercise below
+is exactly that kind: a function whose output for one call secretly depends on a previous, unrelated call. Tracing
+it is a job for the same tool as the sum-loop bug above -- watching a variable's actual value over time, by hand
+or with a debugger, until it stops matching what you expected.

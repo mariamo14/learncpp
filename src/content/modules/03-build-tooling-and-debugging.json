@@ -2,5 +2,5 @@
   "title": "Build Tooling & Debugging Literacy",
   "order": 3,
   "description": "How compilation actually works (preprocess, compile, assemble, link), reading compiler errors, CMake, gdb/lldb breakpoints, and the mental model behind ASan/valgrind.",
-  "status": "coming-soon"
+  "status": "available"
 }

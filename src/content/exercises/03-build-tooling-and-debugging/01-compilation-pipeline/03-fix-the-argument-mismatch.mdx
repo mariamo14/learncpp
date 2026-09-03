@@ -1,0 +1,65 @@
+---
+title: "Fix: Argument Mismatch"
+lesson: "03-build-tooling-and-debugging/01-compilation-pipeline"
+order: 3
+difficulty: "hard"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int clamp(int value, int lo, int hi) {
+      if (value < lo) return lo;
+      if (value > hi) return hi;
+      return value;
+  }
+
+  int main(void) {
+      int value, lo, hi;
+      scanf("%d %d %d", &value, &lo, &hi);
+
+      // TODO: this call is missing an argument -- clamp takes three
+      // (value, lo, hi), not two. Fix the call, not the function.
+      printf("Clamped: %d\n", clamp(value, lo));
+      return 0;
+  }
+tests:
+  - name: "sample: above range"
+    stdin: "15 0 10"
+    expectedOutput: "Clamped: 10"
+    hidden: false
+  - name: "below range"
+    stdin: "-5 0 10"
+    expectedOutput: "Clamped: 0"
+    hidden: true
+  - name: "already in range"
+    stdin: "5 0 10"
+    expectedOutput: "Clamped: 5"
+    hidden: true
+hints:
+  - "Submit this as-is and read the error: 'too many arguments' or 'too few arguments' to 'clamp', with a note pointing at clamp's declaration -- this is caught at compile time, unlike the previous exercise's linker error, because the compiler can see both the call and the declaration at once."
+  - "clamp is already fully and correctly implemented. The bug is entirely in how main calls it -- main already reads value, lo, and hi from input, it just isn't passing all three through."
+solution: |
+  #include <stdio.h>
+
+  int clamp(int value, int lo, int hi) {
+      if (value < lo) return lo;
+      if (value > hi) return hi;
+      return value;
+  }
+
+  int main(void) {
+      int value, lo, hi;
+      scanf("%d %d %d", &value, &lo, &hi);
+
+      printf("Clamped: %d\n", clamp(value, lo, hi));
+      return 0;
+  }
+---
+
+`clamp` restricts `value` to the range `[lo, hi]`, and it's already implemented correctly. The bug is entirely at
+the call site in `main`, which reads all three inputs but only passes two of them through to `clamp`.
+
+Submit this as-is and read the error before fixing it -- it's a different flavor from both previous exercises: not
+a syntax error (the code parses fine) and not a link error (the function *is* defined) but a compile-time argument
+mismatch, caught because the compiler can see the function's declared signature and this call site in the same
+file.

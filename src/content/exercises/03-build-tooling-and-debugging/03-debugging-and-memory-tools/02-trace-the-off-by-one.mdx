@@ -1,0 +1,67 @@
+---
+title: "Trace the Off-by-One"
+lesson: "03-build-tooling-and-debugging/03-debugging-and-memory-tools"
+order: 2
+difficulty: "medium"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      int values[100];
+      for (int i = 0; i < n; i++) {
+          scanf("%d", &values[i]);
+      }
+
+      int total = 0;
+      for (int i = 0; i < n - 1; i++) {
+          total += values[i];
+      }
+      printf("Total: %d\n", total);
+      return 0;
+  }
+tests:
+  - name: "sample: 4 values"
+    stdin: "4\n1 2 3 4"
+    expectedOutput: "Total: 10"
+    hidden: false
+  - name: "single value"
+    stdin: "1\n5"
+    expectedOutput: "Total: 5"
+    hidden: true
+  - name: "five values"
+    stdin: "5\n10 20 30 40 50"
+    expectedOutput: "Total: 150"
+    hidden: true
+hints:
+  - "This is exactly the transcript from the lesson: trace i and total by hand as the loop runs for n = 4. The loop's last iteration should use i = 3 (values[3], the final element) -- does i < n - 1 actually let i reach 3?"
+  - "i < n - 1 stops one iteration early for every n. The fix is the loop bound this course has used everywhere else: i < n."
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      int values[100];
+      for (int i = 0; i < n; i++) {
+          scanf("%d", &values[i]);
+      }
+
+      int total = 0;
+      for (int i = 0; i < n; i++) {
+          total += values[i];
+      }
+      printf("Total: %d\n", total);
+      return 0;
+  }
+---
+
+This program compiles and runs -- it just returns the wrong total, consistently missing the last element. This is
+the exact bug traced in the lesson's annotated debugger transcript: before changing anything, trace `i` and
+`total` by hand through every iteration for the sample input (`n = 4`, `values = [1, 2, 3, 4]`), the same way the
+transcript watched them converge on the bug.
+
+Once you can see which value never gets added and why the loop stops one iteration early, the fix is a single
+character.

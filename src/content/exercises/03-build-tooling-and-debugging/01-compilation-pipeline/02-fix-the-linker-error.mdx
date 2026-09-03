@@ -1,0 +1,59 @@
+---
+title: "Fix: Undefined Reference"
+lesson: "03-build-tooling-and-debugging/01-compilation-pipeline"
+order: 2
+difficulty: "medium"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int square(int n);
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      printf("Square: %d\n", square(n));
+      return 0;
+  }
+
+  // TODO: square is declared above but never defined -- that's the bug.
+  // Define it here so it matches the declaration and returns n * n.
+tests:
+  - name: "sample: 4"
+    stdin: "4"
+    expectedOutput: "Square: 16"
+    hidden: false
+  - name: "zero"
+    stdin: "0"
+    expectedOutput: "Square: 0"
+    hidden: true
+  - name: "negative"
+    stdin: "-5"
+    expectedOutput: "Square: 25"
+    hidden: true
+hints:
+  - "Submit this as-is and read the error -- notice it doesn't point at a line in your file the way a syntax error does, and mentions `ld` and 'undefined reference' instead. That's your signal this is a link error, not a compile error: the declaration satisfied the compiler, but no definition exists for the linker to find."
+  - "A declaration (`int square(int n);`) is a promise; a definition (`int square(int n) { ... }`) is the promise kept. You need to add the definition."
+  - "int square(int n) { return n * n; }"
+solution: |
+  #include <stdio.h>
+
+  int square(int n);
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      printf("Square: %d\n", square(n));
+      return 0;
+  }
+
+  int square(int n) {
+      return n * n;
+  }
+---
+
+`main` calls `square(n)`, and `square` is declared above it -- but never *defined* anywhere in the file. Submit
+this as-is first and read the error you get: it will look nothing like the syntax errors from the previous
+exercise, because this program compiles just fine. It fails one stage later, at link time.
+
+Fix it by adding `square`'s definition (it should return `n * n`) anywhere in the file below its declaration.

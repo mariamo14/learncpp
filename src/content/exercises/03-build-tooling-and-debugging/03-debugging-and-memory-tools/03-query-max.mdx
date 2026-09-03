@@ -1,0 +1,93 @@
+---
+title: "Fix: Stale State Between Queries"
+lesson: "03-build-tooling-and-debugging/03-debugging-and-memory-tools"
+order: 3
+difficulty: "hard"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int compute_max(const int *values, int n) {
+      static int best = 0;
+      for (int i = 0; i < n; i++) {
+          if (values[i] > best) {
+              best = values[i];
+          }
+      }
+      return best;
+  }
+
+  int main(void) {
+      int q;
+      scanf("%d", &q);
+      for (int query = 0; query < q; query++) {
+          int n;
+          scanf("%d", &n);
+          int values[100];
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &values[i]);
+          }
+          printf("Query %d max: %d\n", query + 1, compute_max(values, n));
+      }
+      return 0;
+  }
+tests:
+  - name: "sample: 2 queries"
+    stdin: "2\n3\n10 20 5\n3\n1 2 3"
+    expectedOutput: |
+      Query 1 max: 20
+      Query 2 max: 3
+    hidden: false
+  - name: "3 queries, later ones smaller"
+    stdin: "3\n2\n5 5\n1\n100\n2\n1 1"
+    expectedOutput: |
+      Query 1 max: 5
+      Query 2 max: 100
+      Query 3 max: 1
+    hidden: true
+  - name: "single query"
+    stdin: "1\n4\n7 2 9 4"
+    expectedOutput: "Query 1 max: 9"
+    hidden: true
+hints:
+  - "This has no compile error and no undefined behavior -- it's a pure logic bug, the kind no compiler warning or memory checker catches. Trace `best`'s value across the *whole run*, not just within one call to compute_max, the way the lesson's transcript traced a variable across loop iterations."
+  - "static int best = 0; only runs its initializer once, ever, the very first time the function is called -- every later call reuses the same variable, with whatever value the previous call left it at. That's why query 2's answer in the sample (3) comes back as the leftover from query 1 (20) instead."
+  - "Change `best` to an ordinary (non-static) local, initialized fresh on every call -- e.g. `int best = values[0];` -- so each call to compute_max starts from that query's own first value instead of the last query's leftover maximum."
+solution: |
+  #include <stdio.h>
+
+  int compute_max(const int *values, int n) {
+      int best = values[0];
+      for (int i = 0; i < n; i++) {
+          if (values[i] > best) {
+              best = values[i];
+          }
+      }
+      return best;
+  }
+
+  int main(void) {
+      int q;
+      scanf("%d", &q);
+      for (int query = 0; query < q; query++) {
+          int n;
+          scanf("%d", &n);
+          int values[100];
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &values[i]);
+          }
+          printf("Query %d max: %d\n", query + 1, compute_max(values, n));
+      }
+      return 0;
+  }
+---
+
+This program answers several independent "what's the max of these values" queries in a row. Run the sample by
+hand first: query 1's values are `10 20 5` (max 20, correct), but query 2's values are `1 2 3` -- their actual max
+is `3`, yet the buggy program reports `20` again.
+
+There's no compile error here, and nothing undefined -- this is the class of bug the lesson closes on: state that
+silently outlives the call that set it. `static` gives a local variable a lifetime spanning the *entire program*
+instead of just one call, which is exactly what you want for, say, a counter that persists across calls on
+purpose -- and exactly wrong here, where each call is supposed to start fresh. Find where `best` is declared, and
+fix its lifetime, not the comparison logic (which is already correct).

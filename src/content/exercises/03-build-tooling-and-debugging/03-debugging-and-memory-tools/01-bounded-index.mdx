@@ -1,0 +1,75 @@
+---
+title: "Bounded Index"
+lesson: "03-build-tooling-and-debugging/03-debugging-and-memory-tools"
+order: 1
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+  #include <assert.h>
+
+  int get_at(const int *arr, int length, int index) {
+      // TODO: assert that index is in bounds -- 0 <= index < length --
+      // then return arr[index].
+      return 0;
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      int values[100];
+      for (int i = 0; i < n; i++) {
+          scanf("%d", &values[i]);
+      }
+      int index;
+      scanf("%d", &index);
+      printf("Value: %d\n", get_at(values, n, index));
+      return 0;
+  }
+tests:
+  - name: "sample: middle index"
+    stdin: "5\n10 20 30 40 50\n2"
+    expectedOutput: "Value: 30"
+    hidden: false
+  - name: "first index"
+    stdin: "3\n1 2 3\n0"
+    expectedOutput: "Value: 1"
+    hidden: true
+  - name: "single element"
+    stdin: "1\n42\n0"
+    expectedOutput: "Value: 42"
+    hidden: true
+hints:
+  - "assert(index >= 0 && index < length); as the first line of the function, then return arr[index]."
+  - "Every test here calls get_at with a valid index -- the assert won't fire during grading. It's there as the same kind of documented, enforced assumption as the lesson's safe_divide, for whoever calls this function next."
+solution: |
+  #include <stdio.h>
+  #include <assert.h>
+
+  int get_at(const int *arr, int length, int index) {
+      assert(index >= 0 && index < length);
+      return arr[index];
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      int values[100];
+      for (int i = 0; i < n; i++) {
+          scanf("%d", &values[i]);
+      }
+      int index;
+      scanf("%d", &index);
+      printf("Value: %d\n", get_at(values, n, index));
+      return 0;
+  }
+---
+
+Recall from Module 2 that C does no bounds checking at all -- `arr[index]` for an out-of-range `index` silently
+reads whatever memory happens to be there. Implement `get_at` to guard against that: `assert` that `index` is
+within `[0, length)` before indexing, then return `arr[index]`.
+
+Every test case here passes a valid index, so the assert will never actually fire -- that's normal. Its job isn't
+to change what correct input does; it's to make the function's requirement explicit and enforced, so a future
+caller passing an invalid index gets an immediate, clear failure at this exact line, instead of a silent
+out-of-bounds read that might not misbehave visibly until much later.

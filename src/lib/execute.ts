@@ -44,8 +44,12 @@ const GODBOLT_BASE = "https://godbolt.org/api";
 const COMPILER_ID: Record<Language, string> = { c: "cg142", cpp: "g142" };
 
 function stripAnsi(text: string): string {
+  // GCC's colored diagnostics interleave SGR color codes (...m) with
+  // erase-in-line codes (...K); matching only \x1b[...m left literal "[K"
+  // text behind in the rendered output, so this needs to strip any CSI
+  // sequence (ESC [ ... <letter>), not just the color ones.
   // eslint-disable-next-line no-control-regex
-  return text.replace(/\x1b\[[0-9;]*m/g, "");
+  return text.replace(/\x1b\[[0-9;]*[A-Za-z]/g, "");
 }
 
 function joinLines(lines: Array<{ text: string }> | undefined): string {

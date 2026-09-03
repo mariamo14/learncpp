@@ -1,0 +1,60 @@
+---
+title: "Fix: Missing Forward Declaration"
+lesson: "03-build-tooling-and-debugging/02-build-systems-and-cmake"
+order: 1
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      printf("Triple: %d\n", triple(n));
+      return 0;
+  }
+
+  int triple(int n) {
+      return n * 3;
+  }
+tests:
+  - name: "sample: 4"
+    stdin: "4"
+    expectedOutput: "Triple: 12"
+    hidden: false
+  - name: "zero"
+    stdin: "0"
+    expectedOutput: "Triple: 0"
+    hidden: true
+  - name: "negative"
+    stdin: "-5"
+    expectedOutput: "Triple: -15"
+    hidden: true
+hints:
+  - "triple is fully and correctly defined -- just below main, where the compiler hasn't seen it yet when it processes the call inside main."
+  - "This is the same 'implicit declaration' error from the compiler-errors lesson, now caused by ordering within one file instead of a missing #include -- the fix is the same idea a header provides across files: a declaration ahead of first use."
+  - "Add the single line `int triple(int n);` above main -- a prototype, not a second definition."
+solution: |
+  #include <stdio.h>
+
+  int triple(int n);
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      printf("Triple: %d\n", triple(n));
+      return 0;
+  }
+
+  int triple(int n) {
+      return n * 3;
+  }
+---
+
+`triple` is defined correctly, but *after* `main`, which calls it. Submit as-is and read the error -- it's the
+"implicit declaration" error from the previous lesson, except this time nothing is missing an `#include`; the
+function simply hasn't been declared *yet* at the point it's called.
+
+Fix it by adding a forward declaration (a prototype, `int triple(int n);`, with no body) above `main`. This is a
+one-file rehearsal of exactly what a header file does across files: it lets code that comes first refer to code
+defined later, anywhere in the project.

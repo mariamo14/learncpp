@@ -1,0 +1,114 @@
+---
+title: "The Compilation Pipeline & Reading Compiler Errors"
+module: "03-build-tooling-and-debugging"
+order: 1
+summary: "What 'compiling' a C program actually does in four distinct stages, and how to read an error message well enough to go straight to the fix."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+
+    int main(void) {
+        int x = 5
+        printf("x = %d\n", x);
+        return 0;
+    }
+---
+
+## Why this matters
+
+So far, "compile and run" has felt like one step. It isn't -- and once you can see the stages separately, a wall of
+red error text stops being scary and starts being a pointer straight at the problem. This lesson has no new syntax.
+It's about reading the tool you've been using since lesson one.
+
+## Four stages, one command
+
+When you run `gcc main.c -o main`, four distinct programs actually run in sequence:
+
+1. **Preprocess** -- text substitution, before anything is checked for correctness. `#include <stdio.h>` is
+   replaced with the entire contents of that header file; `#define` macros are expanded verbatim. The output of
+   this stage is still plain C source, just much longer (you can see it yourself with `gcc -E main.c`).
+2. **Compile** -- the preprocessed source is translated into assembly language for your specific CPU architecture.
+   This is where the compiler checks your code's *syntax* and *types*, and where the vast majority of the error
+   messages you've seen so far come from.
+3. **Assemble** -- the assembly is turned into machine code: an *object file* (`.o`), containing binary
+   instructions and a list of symbols (function and global variable names) it defines and needs.
+4. **Link** -- one or more object files (plus library code, like the implementation of `printf` itself) are
+   stitched into a final executable. The linker's job is purely to match up every symbol a `.o` file *needs*
+   against a symbol some `.o` file *defines*. It knows nothing about C syntax at all -- by this point, syntax was
+   already checked two stages ago.
+
+Every exercise you've done in this course has run all four stages at once. Knowing they're separate matters
+because **compile errors and link errors look completely different, mean different things, and are fixed
+differently** -- which is exactly what the next two sections cover.
+
+## Reading a compile error
+
+Try running the worked example on the right -- it's broken on purpose. You'll see something close to:
+
+```
+<source>:5:5: error: expected ',' or ';' before 'printf'
+    5 |     printf("x = %d\n", x);
+      |     ^~~~~~
+```
+
+Read it in this order, not top to bottom:
+
+1. **The location**: `5:5` is line 5, column 5 -- but note the error is reported at `printf`, on the line *after*
+   the actual mistake. The compiler doesn't know a statement is missing a semicolon until it starts reading the
+   *next* token and finds something that doesn't fit. **When a compile error's line looks completely innocent,
+   check the line immediately above it first.**
+2. **The message**: `expected ',' or ';' before 'printf'` is precise, if terse -- the parser wanted one of two
+   tokens right before `printf` and got neither. Once you know to read it this way, it directly names the fix (add
+   a `;` at the end of the previous line).
+3. **The caret (`^`)**: points at the exact token where parsing broke down -- not necessarily the exact character
+   you need to change, but always close to it.
+
+A second common case: calling a function that isn't declared. If `main.c` calls `sqrt(4.0)` without
+`#include <math.h>`, modern GCC treats that as a hard error, not a warning:
+
+```
+error: implicit declaration of function 'sqrt' [-Wimplicit-function-declaration]
+note: include '<math.h>' or provide a declaration of 'sqrt'
+```
+
+This is the compiler telling you, correctly, that it has no idea what `sqrt` is supposed to look like -- it can't
+check you're calling it correctly, so it refuses to guess. The fix is almost always exactly what the note says.
+
+## Reading a link error
+
+Declare a function without ever defining it, and call it:
+
+```c
+int square(int n);   // declared: "this function exists, here's its signature"
+int main(void) { printf("%d\n", square(5)); return 0; }
+// square is never defined anywhere
+```
+
+You'll get past compiling -- the compiler is satisfied that `square` was declared before use -- and then fail at
+the link stage with something like:
+
+```
+undefined reference to `square'
+collect2: error: ld returned 1 exit status
+```
+
+No line number in *your* file, no caret, a completely different vocabulary (`ld`, "reference," "collect2"). That's
+your signal this is a **linker** problem, not a syntax problem: some `.o` file needs the symbol `square` and no
+`.o` file defines it. The fix is never "check your syntax" -- it's "make sure the function is actually defined
+(and, in a multi-file project, that the file defining it is being compiled and linked in at all)," which is exactly
+the problem build systems like CMake (next lesson) exist to manage once you have more than one source file.
+
+## Argument mismatches are caught at compile time, not link time
+
+One more common error worth recognizing on sight:
+
+```
+error: too many arguments to function 'add'
+note: declared here
+```
+
+This happens at the *compile* stage, because the compiler can see both the call and the declaration's parameter
+list in the same translation unit and check them against each other -- unlike the missing-definition case above,
+which it can't detect until linking.

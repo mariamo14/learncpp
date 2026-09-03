@@ -1,0 +1,97 @@
+---
+title: "Fix: Grade Report"
+lesson: "03-build-tooling-and-debugging/02-build-systems-and-cmake"
+order: 3
+difficulty: "hard"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int letter_grade(int score) {
+      if (score >= 90) return 'A';
+      if (score >= 80) return 'B';
+      if (score >= 70) return 'C';
+      return 'F';
+  }
+
+  int main(void) {
+      int score;
+      scanf("%d", &score);
+
+      printf("Grade: %c\n", letter_grade(score));
+      printf("Passed: %s\n", passed(score) ? "yes" : "no");
+      return 0;
+  }
+
+  int letter_grade(int score) {
+      if (score >= 90) return 'A';
+      if (score >= 80) return 'B';
+      if (score >= 70) return 'C';
+      return 'F';
+  }
+
+  int passed(int score) {
+      return score >= 60;
+  }
+tests:
+  - name: "sample: 85"
+    stdin: "85"
+    expectedOutput: |
+      Grade: B
+      Passed: yes
+    hidden: false
+  - name: "failing score"
+    stdin: "55"
+    expectedOutput: |
+      Grade: F
+      Passed: no
+    hidden: true
+  - name: "top score"
+    stdin: "100"
+    expectedOutput: |
+      Grade: A
+      Passed: yes
+    hidden: true
+  - name: "passes but no letter grade credit"
+    stdin: "60"
+    expectedOutput: |
+      Grade: F
+      Passed: yes
+    hidden: true
+hints:
+  - "There are two separate bugs here, of the two kinds from this lesson and the last one -- read whichever error comes back first, fix only that, then resubmit and read the next one rather than trying to spot both by eye up front."
+  - "letter_grade is defined twice, identically -- delete one whole definition, the same fix as the previous exercise."
+  - "passed is called in main before it's declared or defined -- it needs a forward declaration above main, the same fix as the exercise before that. It's already correctly implemented below main; you're not writing new logic for either function, only fixing how they're declared."
+solution: |
+  #include <stdio.h>
+
+  int letter_grade(int score) {
+      if (score >= 90) return 'A';
+      if (score >= 80) return 'B';
+      if (score >= 70) return 'C';
+      return 'F';
+  }
+
+  int passed(int score);
+
+  int main(void) {
+      int score;
+      scanf("%d", &score);
+
+      printf("Grade: %c\n", letter_grade(score));
+      printf("Passed: %s\n", passed(score) ? "yes" : "no");
+      return 0;
+  }
+
+  int passed(int score) {
+      return score >= 60;
+  }
+---
+
+This program is supposed to print a letter grade and a pass/fail line for a numeric score -- and both
+`letter_grade` and `passed` are already correctly implemented. It just doesn't compile, for two independent
+reasons, one from each of this module's first two lessons.
+
+Fix it one error at a time: submit, read whatever error comes back first, fix only that specific problem, then
+submit again. You should recognize both errors from the last two exercises -- neither one requires writing new
+logic, only fixing how a function is declared.
