@@ -6,16 +6,22 @@ deploys straight to GitHub Pages.
 
 ## What's here right now
 
-The engine is done and one full module is written end to end:
+The engine is done and three modules are written end to end:
 
-- **Module 1 -- C Foundations**: 3 lessons (variables/operators, control flow, `printf`/`scanf`/overflow), each
-  with a worked example and 3 auto-graded exercises (9 total).
+- **Module 1 -- C Foundations**: 5 lessons (your first program, variables & types, operators & expressions,
+  control flow, `printf`/`scanf`/overflow) -- deliberately split fine-grained, one new idea per lesson, after early
+  feedback that a denser first draft assumed too much and moved too fast. 14 auto-graded exercises.
+- **Module 2 -- Functions, Arrays & Pointers**: 4 lessons (pointer basics on their own before combining them with
+  anything else, functions & pointer out-parameters, arrays & pointer arithmetic, dynamic memory). 12 exercises.
+- **Module 3 -- Build Tooling & Debugging Literacy**: 3 lessons (the compilation pipeline & reading real
+  compiler/linker errors, build systems & CMake, debugging with gdb/lldb & memory tools). 9 exercises, several with
+  intentionally-broken starter code you fix by reading a real error rather than writing from scratch.
 - Split-screen lesson view, CodeSignal-style exercise view, progressive hints, gated reference solutions.
 - Sidebar with per-lesson checkmarks and an overall progress bar.
 - Progress persists in `localStorage`, with export/import to a JSON file (there's no server, so this is the only
   backup mechanism -- export before you clear browser data).
 
-Modules 2-10 exist as roadmap entries (title, description, "coming soon") on the home page but have no lesson
+Modules 4-10 exist as roadmap entries (title, description, "coming soon") on the home page but have no lesson
 content yet. Content-only PRs adding one module at a time is the intended way to fill them in -- the engine doesn't
 need to change for that, only files under `src/content/`.
 

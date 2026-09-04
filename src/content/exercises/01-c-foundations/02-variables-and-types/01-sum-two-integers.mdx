@@ -1,0 +1,52 @@
+---
+title: "Sum Two Integers"
+lesson: "01-c-foundations/02-variables-and-types"
+order: 1
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int a, b;
+      scanf("%d %d", &a, &b);
+
+      // TODO: print the sum in the exact form: Sum: <value>
+      return 0;
+  }
+tests:
+  - name: "sample: 3 and 5"
+    stdin: "3 5"
+    expectedOutput: "Sum: 8"
+    hidden: false
+  - name: "negative numbers"
+    stdin: "-10 4"
+    expectedOutput: "Sum: -6"
+    hidden: true
+  - name: "both zero"
+    stdin: "0 0"
+    expectedOutput: "Sum: 0"
+    hidden: true
+hints:
+  - "scanf(\"%d %d\", &a, &b) reads two whitespace-separated integers -- the whitespace in the format string (including none between two %d's) matches any amount of whitespace in the input, including the newline between two lines."
+  - "printf(\"Sum: %d\\n\", a + b) prints the label, the value, and a trailing newline in one call."
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int a, b;
+      scanf("%d %d", &a, &b);
+      printf("Sum: %d\n", a + b);
+      return 0;
+  }
+---
+
+Read two integers from standard input, separated by whitespace, and print their sum in exactly this form:
+
+```
+Sum: 8
+```
+
+This is the smallest possible C program: it exercises variable declaration, `scanf` for input, integer addition,
+and `printf` for output. Get comfortable with this round trip -- read, compute, print -- before moving on, because
+every exercise in this course is a variation on it.

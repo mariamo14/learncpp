@@ -1,0 +1,93 @@
+---
+title: "Operators & Expressions"
+module: "01-c-foundations"
+order: 3
+summary: "The operators C gives you, how it decides which one runs first in a longer expression, and what happens when a calculation mixes types."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+
+    int main(void) {
+        int base_price = 40;
+        int quantity = 3;
+        double discount = 0.15;
+
+        double subtotal = base_price * quantity;
+        double total = subtotal - subtotal * discount;
+
+        printf("subtotal = %.2f\n", subtotal);
+        printf("total after discount = %.2f\n", total);
+        return 0;
+    }
+---
+
+## Why this matters
+
+You already know `+` and `-`. This lesson is about the parts that are less obvious: what `/` and `%` actually do
+with whole numbers, what order C evaluates a longer expression in when it isn't left-to-right, and what happens
+when a calculation mixes an `int` and a `double` in the same expression. All three of those are common sources of
+"why is this number wrong" bugs -- and all three are fully predictable once you know the rule.
+
+## The arithmetic operators
+
+C gives you `+`, `-`, `*` (multiply), `/` (divide), and one you likely haven't used much: `%` (modulo -- "the
+remainder after dividing"). `7 % 2` is `1`, because `7 / 2` is `3` with `1` left over. You'll use `%` constantly
+for questions like "is this number even?" (`n % 2 == 0`) or "wrap this value back into a range."
+
+## Integer division truncates -- it does not round
+
+This is the single most common surprise in this lesson: `/` between two `int`s produces an `int`, and it does so
+by throwing away, not rounding, whatever comes after the decimal point. `7 / 2` is `3`, not `3.5` and not `4`.
+Try predicting `1 / 2` before you internalize this -- it's `0`, which trips people up constantly, because
+mathematically "one half" feels like it should be *something*, not nothing.
+
+This only happens when *both* sides of `/` are integers. If either side is a `double`, the division happens as
+real, non-truncating division instead. You'll practice deliberately controlling this in the exercises ahead.
+
+## Precedence: which operator runs first
+
+`2 + 3 * 4` is `14`, not `20` -- because `*` runs before `+`, the same rule you already know from ordinary math.
+C calls this **precedence**: `*`, `/`, and `%` all bind tighter than `+` and `-`, meaning they group with their
+operands first, regardless of left-to-right reading order.
+
+Trace the worked example's key line by hand before running it: `total = subtotal - subtotal * discount;`. Read
+left to right and you might expect `(subtotal - subtotal) * discount` -- which would always be zero, since anything
+minus itself is zero. That's not what happens. Because `*` binds tighter than `-`, the multiplication happens
+*first*, giving `subtotal - (subtotal * discount)` -- subtract 15% of the subtotal from itself, which is the
+discount you actually want. Run the example, then change `discount` to `0.5` and predict the new total before
+rerunning to check yourself.
+
+When you want a different order than precedence would give you, use parentheses -- exactly like in ordinary math:
+`(a + b) * c` forces the addition first.
+
+## Implicit conversion: when a calculation mixes types
+
+`base_price * quantity` in the worked example multiplies two `int`s, which gives an `int` result. That result is
+then stored into `double subtotal`. Storing an `int` into a `double` variable converts it automatically -- this is
+called **implicit conversion**, and here it's harmless: no information is lost turning a whole number into a
+floating-point one.
+
+The dangerous direction is the reverse: storing a `double` into an `int` variable silently *truncates* the decimal
+part, the same way integer division does. `int x = 7.9;` gives you `x == 7`, with no warning that anything was
+lost. C never rounds automatically -- it always truncates, in both of these situations. Keep an eye out for this
+whenever a value crosses from `double` to `int`.
+
+## Forcing a conversion on purpose: casts
+
+Sometimes you *want* an `int` to become a `double` before an operation runs, specifically to avoid truncating
+division -- rather than storing the result and having the conversion happen too late. You can force this with a
+**cast**: writing a type in parentheses directly before a value converts it to that type, right there, in the
+middle of an expression.
+
+```c
+int a = 7, b = 2;
+double result = (double)a / b;   // (double)a becomes 7.0 before the division runs
+```
+
+Compare that to `double result = a / b;` without the cast: there, `a / b` is still `int / int`, computed as
+truncating integer division (`3`) *first*, and only converted to a `double` (`3.0`) afterward when it's stored --
+by then, the fractional part is already gone. The cast has to happen *before* the division to change the outcome.
+This distinction -- convert-then-divide versus divide-then-convert -- is exactly what the last exercise below asks
+you to produce, deliberately, both ways.

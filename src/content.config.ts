@@ -48,7 +48,7 @@ const exercises = defineCollection({
   loader: glob({ pattern: "**/*.mdx", base: "./src/content/exercises" }),
   schema: z.object({
     title: z.string(),
-    lesson: z.string(), // slug of the parent lesson, e.g. "01-c-foundations/01-variables-and-operators"
+    lesson: z.string(), // slug of the parent lesson, e.g. "01-c-foundations/02-variables-and-types"
     order: z.number(),
     difficulty: z.enum(["easy", "medium", "hard"]).default("easy"),
     language: z.enum(["c", "cpp"]).default("cpp"),

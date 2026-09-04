@@ -1,0 +1,83 @@
+---
+title: "Pointers: What They Actually Are"
+module: "02-functions-arrays-pointers"
+order: 1
+summary: "Every variable lives somewhere in memory. A pointer is just a variable that stores one of those locations -- nothing more mysterious than that."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+
+    int main(void) {
+        int x = 5;
+        int *p = &x;
+
+        printf("x = %d\n", x);
+        printf("*p = %d\n", *p);
+
+        *p = 99;
+        printf("after *p = 99, x = %d\n", x);
+
+        return 0;
+    }
+---
+
+## Why this matters
+
+In Python or JavaScript, you never manually work with *where* a variable lives in memory -- the language handles
+that entirely out of view. C hands you that control directly, through **pointers**, and it's the single biggest
+conceptual jump in this course so far. The good news: the underlying idea is genuinely simple. Everything that
+feels confusing about pointers usually comes from combining them with something else (a function, an array) before
+the basic mechanic is solid. This lesson deliberately does neither -- just one variable, its address, and a second
+variable that stores that address. The next lesson builds functions on top of exactly what you learn here.
+
+## Every variable lives at an address
+
+When you write `int x = 5;`, C reserves a small box in memory for `x` and puts `5` in it. That box has a physical
+location -- an **address** -- the same way a house has a street address, whether or not you ever write it down.
+Most of the time you don't need to think about this at all; you just refer to the variable by its name, `x`, and
+the compiler handles finding the right box.
+
+`&x` asks for that address directly. `&` here means "the address of" -- read `&x` as "where `x` lives," not as any
+kind of arithmetic. This is the same `&` you've been writing in every `scanf("%d", &x)` call so far, without a full
+explanation until now: `scanf` needs `x`'s *address* so it can reach in and write a value there, not `x`'s current
+value.
+
+## A pointer is a variable that stores an address
+
+```c
+int *p = &x;
+```
+
+Read this declaration in two parts. `int *p` declares a variable named `p` whose job is to store *the address of
+an `int`* -- that's what the `*` means here, in a declaration: "this variable is a pointer to" whatever type comes
+before it. Then `= &x` gives it a starting value: the address of `x`, obtained exactly as above.
+
+This is a genuinely different use of `*` from the one you're about to see in the very next line, and it's the
+single most common source of early pointer confusion -- worth naming explicitly:
+
+- In a **declaration** (`int *p`), `*` means "this is a pointer."
+- In an **expression** (`*p`), `*` means "go to the address this pointer holds, and give me the value there" --
+  this is called **dereferencing**.
+
+Same character, two different meanings, disambiguated entirely by whether you're declaring a variable or using one
+you already have.
+
+## Reading and writing through a pointer
+
+The worked example does both, in order. `printf("*p = %d\n", *p);` dereferences `p` to *read* the value stored at
+the address it holds -- which is `x`'s box, so this prints `5`, same as printing `x` directly.
+
+Then `*p = 99;` dereferences `p` to *write* through it -- not to `p` itself (that would change what address `p`
+points to), but to whatever `p` is currently pointing at. Since `p` holds `x`'s address, this changes `x`. Run the
+example and confirm: the final `printf` reads `x` directly, by name, and it really has become `99` -- even though
+the line that changed it never mentioned `x` by name at all.
+
+## Why bother, if you can just use `x` directly?
+
+In this exact example, you're right that there's no reason to -- writing `x = 99;` directly would be simpler here.
+The payoff shows up the moment the code that needs to change `x` isn't sitting right next to `x`'s declaration
+anymore -- specifically, when it's inside a separate function, which can't refer to `main`'s local variables by
+name at all. Passing that function `x`'s address, instead of `x`'s value, is what lets it reach back and modify
+the caller's variable. That's exactly the next lesson.

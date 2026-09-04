@@ -1,0 +1,62 @@
+---
+title: "Integer vs. True Division"
+lesson: "01-c-foundations/03-operators-and-expressions"
+order: 3
+difficulty: "hard"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int a, b;
+      scanf("%d %d", &a, &b);
+
+      // TODO: print exactly two lines:
+      //   Integer division: <a / b, computed as plain int division>
+      //   True division: <a / b, computed as real division, to 2 decimal places>
+      return 0;
+  }
+tests:
+  - name: "sample: 7 2"
+    stdin: "7 2"
+    expectedOutput: |
+      Integer division: 3
+      True division: 3.50
+    hidden: false
+  - name: "exact division"
+    stdin: "10 4"
+    expectedOutput: |
+      Integer division: 2
+      True division: 2.50
+    hidden: true
+  - name: "a smaller than b"
+    stdin: "1 3"
+    expectedOutput: |
+      Integer division: 0
+      True division: 0.33
+    hidden: true
+hints:
+  - "The first line is the easy one: a / b with both still int gives you truncating division directly -- print it with %d."
+  - "The second line needs a cast on at least one operand before the division happens, or you'll get the same truncated int result promoted to a double after the fact: (double)a / b."
+  - "printf(\"True division: %.2f\\n\", (double)a / b); -- the cast on `a` forces the whole division to happen in floating point."
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int a, b;
+      scanf("%d %d", &a, &b);
+
+      printf("Integer division: %d\n", a / b);
+      printf("True division: %.2f\n", (double)a / b);
+      return 0;
+  }
+---
+
+Read two integers `a` and `b` and print **both** ways of dividing them: plain truncating integer division on the
+first line, and the real (non-truncating) division, rounded to 2 decimal places, on the second.
+
+The first line is just `a / b` -- both operands are already `int`, so it truncates on its own. The second line is
+the one to be deliberate about: `a / b` alone would still compute the truncated integer result first and only
+convert it to a `double` afterward, by which point the remainder is already gone. You need a cast on at least one
+operand -- `(double)a / b` -- to make the division itself happen in floating point, exactly as covered at the end
+of the lesson.

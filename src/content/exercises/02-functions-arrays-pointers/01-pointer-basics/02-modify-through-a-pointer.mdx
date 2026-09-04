@@ -1,0 +1,55 @@
+---
+title: "Modify Through a Pointer"
+lesson: "02-functions-arrays-pointers/01-pointer-basics"
+order: 2
+difficulty: "medium"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int x, amount;
+      scanf("%d %d", &x, &amount);
+      int *p = &x;
+
+      // TODO: use *p (not x directly) to add `amount` to x.
+      // Then print exactly: Result: <new value of x>
+      return 0;
+  }
+tests:
+  - name: "sample: 10 + 5"
+    stdin: "10 5"
+    expectedOutput: "Result: 15"
+    hidden: false
+  - name: "adding a negative amount"
+    stdin: "10 -3"
+    expectedOutput: "Result: 7"
+    hidden: true
+  - name: "starting at zero"
+    stdin: "0 42"
+    expectedOutput: "Result: 42"
+    hidden: true
+hints:
+  - "*p = *p + amount; reads the current value through the pointer, adds amount, and writes the result back through the same pointer -- x itself is never mentioned in this line."
+  - "*p += amount; is the same thing, shortened -- same as x += amount; would be, just going through the pointer instead of the name."
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int x, amount;
+      scanf("%d %d", &x, &amount);
+      int *p = &x;
+
+      *p += amount;
+      printf("Result: %d\n", x);
+      return 0;
+  }
+---
+
+This time, actually change `x` -- but only through `p`, never by writing `x` on the left side of an `=`. Add
+`amount` to it using `*p`, then print `x`'s new value (printing `x` directly at the end is fine; the requirement is
+only about how you *change* it).
+
+This is the write half of the reading you did in the last exercise, and it's the exact mechanic the next lesson
+wraps inside a function: a piece of code that doesn't own a variable directly can still reach in and change it, as
+long as it has that variable's address.

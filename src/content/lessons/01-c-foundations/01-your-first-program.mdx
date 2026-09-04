@@ -1,0 +1,112 @@
+---
+title: "Your First C Program"
+module: "01-c-foundations"
+order: 1
+summary: "What every piece of the smallest possible C program actually does -- read one line at a time, assuming nothing."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+
+    int main(void) {
+        printf("Hello, learncpp!\n");
+        return 0;
+    }
+---
+
+## Why this matters
+
+If you've written Python, JavaScript, or Java before, you already know what a variable is, what a loop is, what a
+function is. What's actually new about C, at first, isn't any of that -- it's the *ceremony*: the ritual of
+`#include`, `int main(void)`, semicolons, curly braces. This lesson is only about that ceremony. There's no new
+programming logic here at all -- just what each piece of text in the smallest possible C program is for, so that
+starting with the next lesson, none of it is a mystery you're working around.
+
+## Running the example
+
+The panel on the right already has a complete, working C program in it. Press **Run**. You should see:
+
+```
+Hello, learncpp!
+```
+
+Every lesson in this course works this way: there's always a real, runnable program on the right. Before reading
+any further, try changing the text between the quotes on the `printf` line to something else, and press Run again
+to see your change take effect. That's the whole loop you'll use throughout this course: change code, run it, read
+the output.
+
+## Reading the program, one line at a time
+
+```c
+#include <stdio.h>
+```
+
+C doesn't come with printing built in the way Python's `print` or JavaScript's `console.log` are just always
+available. Instead, functions like the one that prints text (`printf`, covered below) live in separate files
+called **headers**, and you have to explicitly pull one in before you can use anything from it. `#include
+<stdio.h>` means "bring in the declarations from the *standard input/output* header" -- it's what makes `printf`
+available at all. You'll see an `#include` line like this at the top of nearly every C file in this course, and
+you'll learn more about what it's actually doing under the hood in Module 3. For now: no `#include <stdio.h>`, no
+`printf`.
+
+```c
+int main(void) {
+    ...
+}
+```
+
+In Python, a script just runs top to bottom -- there's no required starting point you have to name. C is stricter:
+every C program must define exactly one function called `main`, and that function is where the program *starts*
+running. Nothing outside `main` executes just by existing.
+
+Breaking that line down piece by piece:
+
+- `main` is the function's name. It has to be exactly this name -- it's how the system that launches your program
+  knows where to start.
+- `(void)` means "this function takes no inputs." You'll write functions that *do* take inputs starting in the
+  next module; `main` here takes none.
+- `int` before `main` means this function will hand back an integer when it finishes -- that's what the `return 0;`
+  on the last line inside it is doing. By convention, returning `0` means "the program finished successfully";
+  a nonzero value signals some kind of failure. You don't need to think hard about this yet -- just know that
+  `return 0;` at the end of `main` is boilerplate you'll write in almost every program in this course.
+- The `{` and `}` mark where `main`'s body starts and ends. Everything the function actually *does* lives between
+  them.
+
+```c
+printf("Hello, learncpp!\n");
+```
+
+`printf` ("print formatted") is the function, made available by that `#include` line, that writes text to the
+output. The text you want printed goes in double quotes. `\n` inside the quotes is not two separate characters --
+it's a single escape sequence meaning "newline," the same idea as pressing Enter. Leave it out and whatever prints
+next would run onto the same line.
+
+And the semicolon at the end: in C, a semicolon marks the end of a **statement** -- one complete instruction. Every
+statement in this course ends with one. Python and JavaScript can often infer where a line ends from the line
+break alone; C never guesses -- it requires the semicolon to be told explicitly. Forgetting one is the single most
+common first mistake in C, and it's exactly what the very first exercise in Module 3 has you diagnose from a real
+compiler error.
+
+## "Compiling" in one paragraph
+
+You've been clicking Run this whole time, so you've already been doing this without needing the theory: the text
+you write is not itself a program a computer can execute directly. A separate program, the **compiler**, translates
+your C source code into an executable -- and only *then* does that executable actually run. If your code has a
+mistake the compiler can't make sense of, it refuses to produce an executable at all and tells you why instead --
+that's what a *compile error* is. This two-step process (compile, then run) is different from Python, where you
+mostly just run the source file directly -- but it's exactly what's happening, invisibly, every time you press
+**Run** in this course. Module 3 goes into this in real depth; for now, just know the two steps exist and are
+separate.
+
+## What comments are for
+
+You'll see lines like this in example code throughout the course:
+
+```c
+// this is a comment
+```
+
+Anything after `//` on a line is a **comment** -- text the compiler entirely ignores, meant only for a human
+reading the code. Comments don't do anything; they're notes. You'll use them in the exercises below to mark where
+your code should go.

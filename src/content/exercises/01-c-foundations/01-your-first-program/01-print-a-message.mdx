@@ -1,0 +1,39 @@
+---
+title: "Print a Message"
+lesson: "01-c-foundations/01-your-first-program"
+order: 1
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      // TODO: print exactly: Learning C, one step at a time.
+      return 0;
+  }
+tests:
+  - name: "exact message"
+    stdin: ""
+    expectedOutput: "Learning C, one step at a time."
+    hidden: false
+hints:
+  - "You need one printf call, with the exact text in double quotes, ending in \\n so the line finishes properly."
+  - "printf(\"Learning C, one step at a time.\\n\");"
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      printf("Learning C, one step at a time.\n");
+      return 0;
+  }
+---
+
+Make this program print exactly:
+
+```
+Learning C, one step at a time.
+```
+
+No input, no variables -- just one `printf` call with the right text in quotes. This exercise exists purely to get
+the mechanics of writing, running, and submitting C code comfortable in your hands before anything else gets
+added on top.

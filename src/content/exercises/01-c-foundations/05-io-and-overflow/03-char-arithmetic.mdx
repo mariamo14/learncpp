@@ -1,0 +1,55 @@
+---
+title: "Char Arithmetic"
+lesson: "01-c-foundations/05-io-and-overflow"
+order: 3
+difficulty: "hard"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      char c;
+      scanf("%c", &c);
+
+      // TODO: c is guaranteed to be a lowercase letter 'a'-'z'.
+      // Print its uppercase equivalent, in the form: Upper: <letter>
+      // Do this with arithmetic on c, not a library function like toupper.
+      return 0;
+  }
+tests:
+  - name: "sample: a"
+    stdin: "a"
+    expectedOutput: "Upper: A"
+    hidden: false
+  - name: "middle of alphabet"
+    stdin: "m"
+    expectedOutput: "Upper: M"
+    hidden: true
+  - name: "last letter"
+    stdin: "z"
+    expectedOutput: "Upper: Z"
+    hidden: true
+hints:
+  - "In ASCII, the lowercase letters and uppercase letters are each a contiguous block, and 'a' through 'z' sits at a fixed offset above 'A' through 'Z'. That offset is the same for every letter: ('a' - 'A')."
+  - "char c2 = c - ('a' - 'A'); computes the uppercase letter as a char. You can also write it as c - 'a' + 'A' -- same value, different order of operations."
+  - "Printing it needs %c, not %d -- %d would print the character's integer value instead of the character itself."
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      char c;
+      scanf("%c", &c);
+      char upper = c - 'a' + 'A';
+      printf("Upper: %c\n", upper);
+      return 0;
+  }
+---
+
+Read a single lowercase letter and print its uppercase form, using arithmetic on the character's numeric value --
+not a library helper like `toupper`.
+
+This is the payoff of "a `char` is just a small integer": `'a'`, `'b'`, ... `'z'` are consecutive integer values in
+ASCII, and so are `'A'` ... `'Z'`, with a fixed gap between the two blocks. `'a' - 'A'` computes that gap as a
+number (32, though you shouldn't need to know that -- write it in terms of the character constants, not the
+literal 32, so the code documents *why* it works). Subtracting the gap from any lowercase letter lands you on the
+matching uppercase letter.

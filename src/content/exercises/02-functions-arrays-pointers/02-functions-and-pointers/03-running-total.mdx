@@ -1,0 +1,78 @@
+---
+title: "Running Total"
+lesson: "02-functions-arrays-pointers/02-functions-and-pointers"
+order: 3
+difficulty: "hard"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  void add_to(int *total, int amount) {
+      // TODO: add `amount` to the int that `total` points to.
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+
+      int total = 0;
+      for (int i = 0; i < n; i++) {
+          int amount;
+          scanf("%d", &amount);
+          add_to(&total, amount);
+      }
+
+      printf("Total: %d\n", total);
+      return 0;
+  }
+tests:
+  - name: "sample: 3 values"
+    stdin: "3\n1 2 3"
+    expectedOutput: "Total: 6"
+    hidden: false
+  - name: "single value"
+    stdin: "1\n5"
+    expectedOutput: "Total: 5"
+    hidden: true
+  - name: "mixed signs"
+    stdin: "4\n-2 5 -3 10"
+    expectedOutput: "Total: 10"
+    hidden: true
+  - name: "zero values"
+    stdin: "0"
+    expectedOutput: "Total: 0"
+    hidden: true
+hints:
+  - "add_to is called once per input value, and it's the only place `total` ever changes -- it needs to accumulate, not overwrite."
+  - "*total = *total + amount; (or the equivalent *total += amount;) adds through the pointer instead of replacing what it points to."
+solution: |
+  #include <stdio.h>
+
+  void add_to(int *total, int amount) {
+      *total += amount;
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+
+      int total = 0;
+      for (int i = 0; i < n; i++) {
+          int amount;
+          scanf("%d", &amount);
+          add_to(&total, amount);
+      }
+
+      printf("Total: %d\n", total);
+      return 0;
+  }
+---
+
+`main` is already complete: it reads a count `n`, then `n` more integers one at a time, calling `add_to(&total,
+amount)` for each. Your job is just `add_to` -- it's called repeatedly against the *same* `total` variable in
+`main`, and each call needs to add to whatever's already there, not reset it.
+
+This is the same out-parameter pattern as the first exercise, but used across multiple calls instead of one --
+`total` in `main` persists across the whole loop, while each call to `add_to` only sees it for an instant through
+the pointer. If your first test passes but later ones look like only the last `amount` "stuck," that's a sign
+you're overwriting `*total` instead of adding to it.

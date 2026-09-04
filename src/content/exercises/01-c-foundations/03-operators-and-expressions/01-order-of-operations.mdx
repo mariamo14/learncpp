@@ -1,0 +1,50 @@
+---
+title: "Order of Operations"
+lesson: "01-c-foundations/03-operators-and-expressions"
+order: 1
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int a, b, c;
+      scanf("%d %d %d", &a, &b, &c);
+
+      // TODO: print exactly this expression's value, as: Result: <value>
+      //   a + b * c
+      return 0;
+  }
+tests:
+  - name: "sample: 2 3 4"
+    stdin: "2 3 4"
+    expectedOutput: "Result: 14"
+    hidden: false
+  - name: "multiply by zero"
+    stdin: "5 0 10"
+    expectedOutput: "Result: 5"
+    hidden: true
+  - name: "all ones"
+    stdin: "1 1 1"
+    expectedOutput: "Result: 2"
+    hidden: true
+hints:
+  - "Before writing any code, work out 2 + 3 * 4 on paper. Is it 20 (left to right) or 14 (multiplication first)? C uses the second reading."
+  - "int result = a + b * c; printf(\"Result: %d\\n\", result);"
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int a, b, c;
+      scanf("%d %d %d", &a, &b, &c);
+      int result = a + b * c;
+      printf("Result: %d\n", result);
+      return 0;
+  }
+---
+
+Read three integers `a b c` and print the value of `a + b * c`, in the form `Result: 14`.
+
+This is a direct check that you're reading the expression the way the *compiler* does, not strictly left to right:
+`*` runs before `+`, exactly like ordinary math. Work out `2 + 3 * 4` by hand before you code anything -- if you get
+`20`, re-read the precedence section of the lesson before continuing.

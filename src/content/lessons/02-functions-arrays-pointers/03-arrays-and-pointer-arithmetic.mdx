@@ -1,0 +1,70 @@
+---
+title: "Arrays & Pointer Arithmetic"
+module: "02-functions-arrays-pointers"
+order: 3
+summary: "What scores[i] actually compiles to, why an array 'decays' to a pointer, and the bounds checking C doesn't do for you."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+
+    int main(void) {
+        int scores[5] = {91, 85, 72, 68, 95};
+
+        printf("scores[2]      = %d\n", scores[2]);
+        printf("*(scores + 2)  = %d\n", *(scores + 2));
+
+        int total = 0;
+        for (int *p = scores; p < scores + 5; p++) {
+            total += *p;
+        }
+        printf("total = %d\n", total);
+        return 0;
+    }
+---
+
+## Why this matters
+
+C arrays are much closer to raw memory than arrays in most languages: `int scores[5]` reserves five `int`-sized
+boxes laid out contiguously, and that's it -- no length stored alongside them, no bounds checking, nothing else.
+You already know what an address is and what a pointer does with one, from the last two lessons; this lesson's one
+big idea is that `scores[i]` is really just pointer arithmetic in disguise, not a separate array feature. Once
+that clicks, `malloc`'d arrays (next lesson) and eventually C-style strings all turn out to be the same idea
+applied in different places, instead of separate things to memorize.
+
+## `scores[i]` and `*(scores + i)` are the same expression
+
+This is not an analogy -- the compiler treats `a[i]` as *literally* shorthand for `*(a + i)`. When you write
+`scores[2]`, the compiler computes the address `scores + 2` (which, thanks to pointer arithmetic below, correctly
+points at the third element) and dereferences it. The worked example prints both forms for the same element to
+make this concrete: they produce identical results because they *are* identical, just spelled differently.
+
+## Pointer arithmetic is scaled by the pointee's size
+
+`scores + 2` does not mean "2 bytes past `scores`." It means "2 `int`s past `scores`" -- the compiler multiplies
+the `2` by `sizeof(int)` automatically, because it knows `scores` is an `int*`. This is exactly why array indexing
+works at all: `a[i]` finds the `i`-th element regardless of whether each element is 1 byte or 8, because the
+pointer type carries that information. It's also why you cannot do pointer arithmetic on a `void*` -- there's
+nothing to scale by.
+
+## An array "decays" to a pointer almost everywhere you use it
+
+Write `for (int *p = scores; ...)` and `scores` -- an array -- gets converted to a pointer to its first element.
+This happens automatically in most expressions (this is called "array decay"), which is *why* `scores + 5` in the
+worked example's loop condition is legal at all: you're doing pointer arithmetic on `int*`, not on the array
+itself. The loop walks a pointer from `scores` (element 0) up to, but not including, `scores + 5` (one past the
+last element) -- a very common C idiom for "iterate the whole array" that you'll see constantly.
+
+One place decay does *not* happen: `sizeof`. `sizeof(scores)` inside `main` correctly gives `20` (5 `int`s × 4
+bytes) because `scores` is still a real array there. But if you pass `scores` to a function, the parameter receives
+a decayed pointer, and `sizeof` inside that function would give you the pointer's size (8, typically), not the
+array's -- a well-known trap. That's why array-processing functions in C almost always take an explicit length
+parameter alongside the pointer, which is the convention every exercise below follows.
+
+## There is no bounds checking
+
+`scores[10]` for a 5-element array compiles and runs -- it computes an address 10 `int`s past `scores` and reads
+or writes whatever happens to be there. This is undefined behavior, not a caught error, and it's one of C's
+sharpest edges. Every exercise below gives you the array's length explicitly for exactly this reason: it's your
+job to stay inside `[0, length)`, because nothing else will.

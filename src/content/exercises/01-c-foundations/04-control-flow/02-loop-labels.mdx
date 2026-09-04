@@ -1,0 +1,105 @@
+---
+title: "Loop Labels"
+lesson: "01-c-foundations/04-control-flow"
+order: 2
+difficulty: "medium"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+
+      // TODO: for i = 1..n (inclusive), print one line each:
+      //   multiple of 4 and 7  -> AlphaBeta
+      //   multiple of 4 only   -> Alpha
+      //   multiple of 7 only   -> Beta
+      //   otherwise            -> the number itself
+      return 0;
+  }
+tests:
+  - name: "sample: n=10"
+    stdin: "10"
+    expectedOutput: |
+      1
+      2
+      3
+      Alpha
+      5
+      6
+      Beta
+      Alpha
+      9
+      10
+    hidden: false
+  - name: "n=28 (hits AlphaBeta)"
+    stdin: "28"
+    expectedOutput: |
+      1
+      2
+      3
+      Alpha
+      5
+      6
+      Beta
+      Alpha
+      9
+      10
+      11
+      Alpha
+      13
+      Beta
+      15
+      Alpha
+      17
+      18
+      19
+      Alpha
+      Beta
+      22
+      23
+      Alpha
+      25
+      26
+      27
+      AlphaBeta
+    hidden: true
+  - name: "n=1 (loop runs once)"
+    stdin: "1"
+    expectedOutput: "1"
+    hidden: true
+hints:
+  - "Check 'divisible by both' first -- if you check 'divisible by 4' first and print+continue, you'll never reach the combined case."
+  - "A number is a multiple of both 4 and 7 exactly when it's a multiple of 28 (their least common multiple, since 4 and 7 share no common factors)."
+  - "for (int i = 1; i <= n; i++) -- inclusive of n, which is an off-by-one spot to double check."
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      for (int i = 1; i <= n; i++) {
+          if (i % 4 == 0 && i % 7 == 0) {
+              printf("AlphaBeta\n");
+          } else if (i % 4 == 0) {
+              printf("Alpha\n");
+          } else if (i % 7 == 0) {
+              printf("Beta\n");
+          } else {
+              printf("%d\n", i);
+          }
+      }
+      return 0;
+  }
+---
+
+Read one integer `n`, then print the numbers from `1` to `n` inclusive, one per line -- except:
+
+- if the number is a multiple of both 4 and 7, print `AlphaBeta` instead
+- if it's a multiple of 4 only, print `Alpha`
+- if it's a multiple of 7 only, print `Beta`
+
+This is a `for` loop with an `if`/`else if`/`else` chain inside it, and the classic trap is branch *order*: the
+"multiple of both" check has to come first, because a number that's a multiple of 28 is *also* a multiple of 4, so
+a naive "check 4 first" chain would report `Alpha` and never reach the combined case.

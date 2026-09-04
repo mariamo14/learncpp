@@ -1,0 +1,72 @@
+---
+title: "Heap Squares"
+lesson: "02-functions-arrays-pointers/04-dynamic-memory"
+order: 1
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+  #include <stdlib.h>
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+
+      // TODO: malloc an array of n ints. Fill index i with i*i for each
+      // i in [0, n). Print all n values space-separated on one line.
+      // Free the array before returning.
+      return 0;
+  }
+tests:
+  - name: "sample: n=5"
+    stdin: "5"
+    expectedOutput: "0 1 4 9 16"
+    hidden: false
+  - name: "single element"
+    stdin: "1"
+    expectedOutput: "0"
+    hidden: true
+  - name: "larger n"
+    stdin: "7"
+    expectedOutput: "0 1 4 9 16 25 36"
+    hidden: true
+hints:
+  - "int *squares = malloc(n * sizeof(int)); -- check it against NULL before writing through it, even though it won't fail for these inputs."
+  - "Fill with a plain for loop: squares[i] = i * i;. Print with a second loop, printing a space before every element except the first (or after every element except the last) to avoid a trailing or leading space."
+  - "free(squares); after you're done printing -- before the final return."
+solution: |
+  #include <stdio.h>
+  #include <stdlib.h>
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+
+      int *squares = malloc(n * sizeof(int));
+      if (squares == NULL) {
+          return 1;
+      }
+
+      for (int i = 0; i < n; i++) {
+          squares[i] = i * i;
+      }
+
+      for (int i = 0; i < n; i++) {
+          printf("%d", squares[i]);
+          if (i < n - 1) {
+              printf(" ");
+          }
+      }
+      printf("\n");
+
+      free(squares);
+      return 0;
+  }
+---
+
+Read `n`, `malloc` an array of `n` ints on the heap, fill it with the squares `0*0, 1*1, 2*2, ...`, print them
+space-separated on one line, and `free` the array.
+
+This is deliberately the same shape as earlier array exercises -- the only new part is that the array's storage
+comes from `malloc` instead of being declared with a fixed compile-time size like `int values[100]`. Everything
+else (indexing, looping, printing) works identically once you have the pointer back from `malloc`.

@@ -3,7 +3,7 @@ import { loadProgress, onProgressChange, type ProgressData } from "../lib/progre
 import { withBase } from "../lib/site";
 
 export interface NavLesson {
-  slug: string; // "01-c-foundations/01-variables-and-operators"
+  slug: string; // "01-c-foundations/02-variables-and-types"
   title: string;
   exerciseSlugs: string[];
 }

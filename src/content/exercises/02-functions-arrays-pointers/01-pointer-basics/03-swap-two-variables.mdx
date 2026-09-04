@@ -1,0 +1,67 @@
+---
+title: "Swap Two Variables"
+lesson: "02-functions-arrays-pointers/01-pointer-basics"
+order: 3
+difficulty: "hard"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int a, b;
+      scanf("%d %d", &a, &b);
+
+      int *pa = &a;
+      int *pb = &b;
+
+      // TODO: swap the values of a and b, using pa and pb -- not by
+      // writing a and b directly, and without declaring a third int
+      // by hand (you'll need one temporary variable, but think about
+      // whether it needs to be a pointer too).
+      printf("a=%d b=%d\n", a, b);
+      return 0;
+  }
+tests:
+  - name: "sample: 3 and 7"
+    stdin: "3 7"
+    expectedOutput: "a=7 b=3"
+    hidden: false
+  - name: "equal values"
+    stdin: "1 1"
+    expectedOutput: "a=1 b=1"
+    hidden: true
+  - name: "negative and positive"
+    stdin: "-5 10"
+    expectedOutput: "a=10 b=-5"
+    hidden: true
+hints:
+  - "The plain-variable version of a swap is: int temp = a; a = b; b = temp;. Rewrite each of those three lines to go through pa and pb instead of a and b directly."
+  - "temp itself just needs to hold an int value (whatever *pa currently is) -- it doesn't need to be a pointer, only the reads and writes to a and b do."
+  - "int temp = *pa; *pa = *pb; *pb = temp;"
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int a, b;
+      scanf("%d %d", &a, &b);
+
+      int *pa = &a;
+      int *pb = &b;
+
+      int temp = *pa;
+      *pa = *pb;
+      *pb = temp;
+
+      printf("a=%d b=%d\n", a, b);
+      return 0;
+  }
+---
+
+Swap `a` and `b`'s values -- but do every read and write through `pa` and `pb`, never by writing `a` or `b`
+directly. You'll still need one ordinary temporary variable to hold a value mid-swap, exactly like a swap without
+pointers would; the only thing that changes is that every access to `a` and `b` themselves goes through a pointer
+instead.
+
+This is worth getting comfortable with by hand here, in `main`, because the very next lesson wraps this identical
+logic inside a function -- at which point it stops being optional and becomes the only way to write a function that
+can swap its caller's variables at all.

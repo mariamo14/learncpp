@@ -1,0 +1,48 @@
+---
+title: "Echo a Number"
+lesson: "01-c-foundations/01-your-first-program"
+order: 3
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int n;
+      // TODO: read one int into n, then print exactly: You entered: <n>
+      return 0;
+  }
+tests:
+  - name: "sample: 7"
+    stdin: "7"
+    expectedOutput: "You entered: 7"
+    hidden: false
+  - name: "a different number"
+    stdin: "42"
+    expectedOutput: "You entered: 42"
+    hidden: true
+  - name: "negative number"
+    stdin: "-3"
+    expectedOutput: "You entered: -3"
+    hidden: true
+hints:
+  - "scanf(\"%d\", &n); reads one int typed as input and stores it into n. The %d matches printf's placeholder from the last exercise -- same letter, same meaning, opposite direction (reading in instead of printing out)."
+  - "The & before n in scanf is not optional and not decorative -- you'll learn exactly what it means in Module 2. For now, just know: printf(\"...\", n) reads n's value, but scanf(\"...\", &n) needs to write into n, so it needs & in front of it. Forgetting the & is a very common early mistake."
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      printf("You entered: %d\n", n);
+      return 0;
+  }
+---
+
+Read one integer typed as input, and print it back in the form `You entered: 7`.
+
+This is the first time your program's output depends on something it *reads*, rather than a value you typed
+directly into the source code. `scanf` is `printf`'s counterpart for reading input, and it uses the same `%d`
+placeholder -- but notice the starter code has `&n`, not just `n`, in the `scanf` line. Don't worry about exactly
+why yet; just copy the pattern (`scanf("%d", &something)` to read, `printf("...", something)` to print) for now.
+Module 2 explains precisely what that `&` is doing.

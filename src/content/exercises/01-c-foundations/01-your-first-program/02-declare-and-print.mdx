@@ -1,0 +1,43 @@
+---
+title: "Declare and Print"
+lesson: "01-c-foundations/01-your-first-program"
+order: 2
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      // TODO: declare an int variable named age, set it to 30,
+      // then print exactly: Age: 30
+      return 0;
+  }
+tests:
+  - name: "prints the declared value"
+    stdin: ""
+    expectedOutput: "Age: 30"
+    hidden: false
+hints:
+  - "Declaring a variable in C names both a type and a name at once: int age = 30; creates a box named age, sized to hold an int, holding the value 30."
+  - "printf(\"Age: %d\\n\", age); -- %d inside the quotes is a placeholder that gets replaced by the int argument that follows, the same way an f-string {age} or a template literal ${age} works in languages you may already know."
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int age = 30;
+      printf("Age: %d\n", age);
+      return 0;
+  }
+---
+
+Declare a variable named `age`, of type `int`, set to `30` -- then print exactly:
+
+```
+Age: 30
+```
+
+Two new pieces here, both of which you'll use constantly from now on. First, `int age = 30;` -- in C you always
+state a variable's type when you declare it (`int` for a whole number), unlike Python or JavaScript where you just
+assign a value and the type is inferred. Second, `printf("Age: %d\n", age);` -- the `%d` inside the string is a
+placeholder for an `int` value, filled in by the extra argument (`age`) after the comma. You'll see this
+placeholder pattern (a different letter for each type) constantly starting in the next lesson.

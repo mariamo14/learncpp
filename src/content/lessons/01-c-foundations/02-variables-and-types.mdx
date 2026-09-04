@@ -1,0 +1,88 @@
+---
+title: "Variables & Types"
+module: "01-c-foundations"
+order: 2
+summary: "Why C makes you say what kind of value a variable holds, and what int, double, and char actually are underneath."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+
+    int main(void) {
+        int quantity = 3;
+        double price = 2.5;
+        char grade = 'B';
+
+        printf("quantity = %d\n", quantity);
+        printf("price = %.2f\n", price);
+        printf("grade = %c\n", grade);
+        return 0;
+    }
+---
+
+## Why this matters
+
+In Python or JavaScript, you can write `x = 5` and later `x = "hello"` -- the same name can hold completely
+different kinds of values, and the language figures it out as it goes. C doesn't work that way: every variable has
+one type, fixed the moment you declare it, forever. That's not an arbitrary restriction. A type tells the compiler
+exactly how many bytes to set aside for that variable and exactly how to interpret whatever bits end up stored
+there -- and it needs to know that up front, before your program even runs, not figure it out on the fly. This
+lesson is about what that means concretely, for the handful of types you'll use constantly.
+
+## A variable is a labeled box of a fixed size
+
+When you write `int quantity = 3;`, three things happen: the compiler reserves a small, fixed-size chunk of memory
+(a "box"), it remembers that this particular box is called `quantity`, and it remembers that whatever bits end up
+in that box should be read as an `int`. The `3` gets stored into the box as a pattern of bits -- specifically,
+however the number 3 is represented in binary.
+
+This matters because the box's size is fixed by its type, chosen when you declared it, and can never change. An
+`int` box is always the same size, no matter what number you put in it -- unlike a Python `int`, which can grow
+arbitrarily large automatically. C decided the size up front, at compile time, in exchange for that memory being
+extremely cheap and fast to use. (What happens if a number doesn't fit in its box is the subject of a later
+lesson, on overflow -- for now, just hold onto "fixed size, decided in advance.")
+
+## The four types you'll use constantly
+
+The worked example on the right declares one variable of each of the three most common types, plus there's a
+fourth worth knowing about now. Go through them one at a time:
+
+**`int`** -- a whole number, positive or negative, no decimal point. This is almost always your default choice for
+counting things. On essentially every machine you'll use, an `int` is 4 bytes (32 bits), which gives it a range of
+roughly -2.1 billion to +2.1 billion -- more than enough for counting most things, but not infinite the way a
+Python integer is.
+
+**`double`** -- a number that can have a decimal point (a "floating-point" number). Use this for prices, averages,
+measurements -- anything that isn't naturally a whole number. It's 8 bytes, and stores roughly 15-17 significant
+decimal digits, which is precise but, importantly, *not exact* -- `double` values are frequently very slightly off
+from the "real" decimal number they're approximating, the same way `0.1 + 0.2` famously doesn't print as exactly
+`0.3` in most languages. You won't feel this in the exercises ahead, but it's worth knowing it's true from the
+start.
+
+**`char`** -- a single character, written in *single* quotes (`'B'`, not `"B"` -- double quotes are for text made
+of multiple characters, which this course gets to later). Here's the part that's genuinely different from most
+languages you've used: a `char` is not a special "text" type at all. It's a 1-byte integer, and printing it as a
+character is just C choosing to display that integer's value using a standard mapping from numbers to symbols
+(ASCII) -- `'B'` and the number `66` are, underneath, the exact same thing. This stops being a curiosity and
+becomes useful in the last lesson of this module.
+
+**`float`** -- like `double`, but 4 bytes instead of 8, with only about 6-9 significant digits. You won't use this
+much in this course; prefer `double` unless you have a specific reason not to (matching hardware, saving memory at
+large scale). It's worth knowing it exists mainly so you recognize it when you see it.
+
+## Declaring a variable: the pattern
+
+Every declaration in the worked example follows the same shape: `type name = value;`. Say the type, then a name of
+your choosing, then `=` and the starting value, then a semicolon. You can also declare a variable without giving it
+a value yet (`int quantity;`), and assign it later on its own line (`quantity = 3;`) -- you actually already did
+this in the previous lesson's last exercise, with `int n;` followed later by reading into it with `scanf`.
+
+## Printing each type needs its own placeholder
+
+Notice the worked example uses a different placeholder in each `printf` call: `%d` for the `int`, `%.2f` for the
+`double` (the `.2` means "2 digits after the decimal point" -- try removing it and rerunning, to see the
+difference), and `%c` for the `char`. `printf` doesn't know your variables' types on its own -- you tell it, one
+placeholder at a time, and it's your responsibility to match the placeholder to the actual type. Getting this wrong
+(printing an `int` with `%c`, for instance) compiles without complaint in C and just produces nonsense output --
+worth remembering the next time something prints strangely.

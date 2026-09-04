@@ -1,0 +1,61 @@
+---
+title: "Read Through a Pointer"
+lesson: "02-functions-arrays-pointers/01-pointer-basics"
+order: 1
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int x;
+      scanf("%d", &x);
+      int *p = &x;
+
+      // TODO: print exactly two lines:
+      //   Value: <x>
+      //   Through pointer: <*p>
+      return 0;
+  }
+tests:
+  - name: "sample: 17"
+    stdin: "17"
+    expectedOutput: |
+      Value: 17
+      Through pointer: 17
+    hidden: false
+  - name: "zero"
+    stdin: "0"
+    expectedOutput: |
+      Value: 0
+      Through pointer: 0
+    hidden: true
+  - name: "negative"
+    stdin: "-42"
+    expectedOutput: |
+      Value: -42
+      Through pointer: -42
+    hidden: true
+hints:
+  - "You already have both x and p -- just print x directly on the first line, then *p (dereferenced) on the second. Both should print the exact same number, since p points at x."
+  - "printf(\"Value: %d\\n\", x); printf(\"Through pointer: %d\\n\", *p);"
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int x;
+      scanf("%d", &x);
+      int *p = &x;
+
+      printf("Value: %d\n", x);
+      printf("Through pointer: %d\n", *p);
+      return 0;
+  }
+---
+
+`p` already points at `x` (that's what `int *p = &x;` set up). Print `x`'s value two ways: directly by name, and
+by dereferencing `p`. They should always match -- `*p` and `x` refer to the exact same box in memory, just spelled
+differently.
+
+This exercise doesn't ask you to change anything yet -- it's just confirming, with real input instead of a fixed
+example, that reading through a pointer really does give you back the pointee's value.
