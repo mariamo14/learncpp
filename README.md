@@ -16,9 +16,11 @@ The engine is done and three modules are written end to end:
 - **Module 2 -- Functions, Arrays & Pointers**: 7 lessons (pointer basics on their own before combining them with
   anything else, functions & pointer out-parameters, const-correctness, arrays & pointer arithmetic including 2D
   arrays, C-strings, dynamic memory, recursion). 24 exercises.
-- **Module 3 -- Build Tooling & Debugging Literacy**: 3 lessons (the compilation pipeline & reading real
-  compiler/linker errors, build systems & CMake, debugging with gdb/lldb & memory tools). 9 exercises, several with
-  intentionally-broken starter code you fix by reading a real error rather than writing from scratch.
+- **Module 3 -- Build Tooling & Debugging Literacy**: 4 lessons (the compilation pipeline & reading real
+  compiler/linker errors, the preprocessor -- macros, the classic unparenthesized-macro bug, conditional
+  compilation, header guards -- build systems & CMake including internal linkage via `static`, debugging with
+  gdb/lldb & memory tools). 15 exercises, several with intentionally-broken starter code you fix by reading a real
+  error rather than writing from scratch.
 - Split-screen lesson view, CodeSignal-style exercise view, progressive hints, gated reference solutions.
 - Sidebar with per-lesson checkmarks and an overall progress bar.
 - Progress persists in `localStorage`, with export/import to a JSON file (there's no server, so this is the only

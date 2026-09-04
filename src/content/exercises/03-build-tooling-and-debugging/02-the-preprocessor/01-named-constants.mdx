@@ -1,0 +1,68 @@
+---
+title: "Named Constants"
+lesson: "03-build-tooling-and-debugging/02-the-preprocessor"
+order: 1
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  // TODO: #define MIN_SCORE as 0 and MAX_SCORE as 100 here -- the code
+  // below already refers to both names, so it won't compile until you do.
+
+  int main(void) {
+      int score;
+      scanf("%d", &score);
+
+      if (score >= MIN_SCORE && score <= MAX_SCORE) {
+          printf("In range\n");
+      } else {
+          printf("Out of range\n");
+      }
+      return 0;
+  }
+tests:
+  - name: "sample: 50"
+    stdin: "50"
+    expectedOutput: "In range"
+    hidden: false
+  - name: "below minimum"
+    stdin: "-5"
+    expectedOutput: "Out of range"
+    hidden: true
+  - name: "at the maximum, inclusive"
+    stdin: "100"
+    expectedOutput: "In range"
+    hidden: true
+  - name: "above maximum"
+    stdin: "101"
+    expectedOutput: "Out of range"
+    hidden: true
+hints:
+  - "#define MIN_SCORE 0 -- no semicolon, no equals sign. Same pattern for MAX_SCORE."
+  - "#define MIN_SCORE 0\n#define MAX_SCORE 100"
+solution: |
+  #include <stdio.h>
+
+  #define MIN_SCORE 0
+  #define MAX_SCORE 100
+
+  int main(void) {
+      int score;
+      scanf("%d", &score);
+
+      if (score >= MIN_SCORE && score <= MAX_SCORE) {
+          printf("In range\n");
+      } else {
+          printf("Out of range\n");
+      }
+      return 0;
+  }
+---
+
+`main` already checks `score` against `MIN_SCORE` and `MAX_SCORE` -- your only job is to `#define` both, to `0`
+and `100` respectively, so the file compiles at all.
+
+Notice there's no semicolon and no `=` in a `#define` -- it isn't a C statement, it's a preprocessor directive, and
+the compiler never sees `MIN_SCORE` or `MAX_SCORE` as names at all; by the time compilation starts, every
+occurrence has already been replaced with the literal number.

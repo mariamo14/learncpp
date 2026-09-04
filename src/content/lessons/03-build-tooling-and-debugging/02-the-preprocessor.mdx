@@ -1,0 +1,113 @@
+---
+title: "The Preprocessor: Macros & Conditional Compilation"
+module: "03-build-tooling-and-debugging"
+order: 2
+summary: "#include is one preprocessor directive among several -- #define and #ifdef are the other two you'll actually use, and each has a sharp edge worth knowing about up front."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+
+    #define PI 3.14159
+    #define SQUARE(x) ((x) * (x))
+
+    int main(void) {
+        double radius = 5.0;
+        double area = PI * SQUARE(radius);
+        printf("area = %.2f\n", area);
+        return 0;
+    }
+---
+
+## Why this matters
+
+The last lesson covered `#include` as "text substitution before compilation" without dwelling on it, since at the
+time there was nothing to compare it to. Now there is: `#define` is the preprocessor's other major tool, and it's
+used constantly for named constants and small inline computations. It's also the source of a genuinely famous C
+bug pattern, one worth being able to spot on sight.
+
+## Object-like macros: named constants, substituted as text
+
+```c
+#define PI 3.14159
+```
+
+Every occurrence of `PI` in the rest of the file is replaced, character for character, with `3.14159` -- **before
+the compiler ever runs**. This is fundamentally different from a variable: `PI` has no type, occupies no memory,
+and can't be assigned to. It's purely a find-and-replace performed on your source text. This is also why, unlike
+every other line of C you've written, there's no semicolon after a `#define` -- it's not a C statement at all,
+it's an instruction to the preprocessor, which runs as a completely separate pass first.
+
+You've written array declarations like `int values[100]` throughout this course with a bare literal `100`. In real
+code, sizing decisions like that are almost always named instead: `#define MAX_VALUES 100`, then `int
+values[MAX_VALUES]`. It documents *why* the number is what it is, and it means changing it later means changing one
+line, not hunting down every occurrence of a bare `100` and hoping you found them all.
+
+## Function-like macros, and the bug they're famous for
+
+```c
+#define SQUARE(x) ((x) * (x))
+```
+
+This looks like a function call, but it's still pure text substitution -- `SQUARE(radius)` in the worked example
+is replaced with `((radius) * (radius))` before compilation, with no actual function call happening at runtime.
+
+Here's the famous trap. Suppose it had been written without the parentheses, as `#define SQUARE(x) x * x`. That
+looks equivalent -- until you call it with an expression instead of a single variable: `SQUARE(a + b)` expands,
+by pure text substitution, to `a + b * a + b`. Precedence then runs on the *expanded* text, computing `a + (b * a)
++ b`, not `(a + b) * (a + b)` as the name promises. The fix is parenthesizing **every** occurrence of the
+parameter, and the whole expansion, exactly as the worked example does: `((x) * (x))`. Get in the habit of
+wrapping every parameter *and* the overall macro body in parentheses by default, even when today's use looks safe
+-- the whole danger is that it stops being safe the moment someone calls it with an expression instead of a bare
+value, possibly in code you'll never see.
+
+(One more sharp edge worth knowing about, without needing to guard against it in this course's exercises: because
+a macro's parameter is substituted everywhere it's written in the body, an argument with a side effect --
+`SQUARE(i++)` -- gets that side effect duplicated, incrementing `i` twice. A real function evaluates its argument
+once, into one parameter; a macro doesn't evaluate anything, it just pastes text, however many times the parameter
+appears.)
+
+## Conditional compilation: code the compiler never even sees
+
+```c
+#define VERBOSE
+
+#ifdef VERBOSE
+    printf("debug: n = %d\n", n);
+#endif
+printf("result = %d\n", result);
+```
+
+`#ifdef NAME` / `#endif` includes the code between them only if `NAME` has been `#define`d -- and if it hasn't,
+the preprocessor deletes those lines before the compiler ever sees them, as if they were never written at all.
+This is different from an ordinary `if`: a runtime `if` chooses which branch to *execute*, but the compiler still
+has to compile both branches into the final program either way. `#ifdef` decides, once, before compilation, whether
+a block of code exists in the compiled program at all. This is the standard way real C projects build a "debug"
+version with extra logging and a "release" version without it, from the exact same source file, controlled by
+whether a flag is defined when compiling.
+
+## Header guards: `#ifdef` solving a problem specific to multiple files
+
+This course's exercises are single files, so this section is necessarily read-only -- but it's a directly
+practical use of everything above, and one you'll recognize instantly once you start splitting real projects across
+files. If two different `.c` files both `#include "shapes.h"`, and `shapes.h` also gets pulled in *indirectly*
+through some other header, the preprocessor can end up inserting its contents into the same translation unit
+twice -- and if `shapes.h` declares a function, that's the exact "redefinition" error from the last lesson,
+triggered by double inclusion instead of a copy-pasted duplicate. The standard fix, in every `.h` file you'll ever
+write:
+
+```c
+#ifndef SHAPES_H
+#define SHAPES_H
+
+// the header's actual contents go here
+
+#endif
+```
+
+`#ifndef` is `#ifdef`'s negation -- "if this name is *not* yet defined." The first time this header is included,
+`SHAPES_H` isn't defined yet, so its contents are included, and the `#define SHAPES_H` line right after runs,
+marking it as seen. Every subsequent `#include` of the same header, anywhere in the same translation unit, finds
+`SHAPES_H` already defined and skips straight to `#endif`, including nothing. This is why nearly every header file
+you'll ever open starts with exactly this three-line pattern, wrapping everything else in the file.

@@ -1,0 +1,54 @@
+---
+title: "Fix: Unparenthesized Macro"
+lesson: "03-build-tooling-and-debugging/02-the-preprocessor"
+order: 2
+difficulty: "medium"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  #define SQUARE(x) x * x
+
+  int main(void) {
+      int a, b;
+      scanf("%d %d", &a, &b);
+      printf("Result: %d\n", SQUARE(a + b));
+      return 0;
+  }
+tests:
+  - name: "sample: 1 and 2"
+    stdin: "1 2"
+    expectedOutput: "Result: 9"
+    hidden: false
+  - name: "3 and 4"
+    stdin: "3 4"
+    expectedOutput: "Result: 49"
+    hidden: true
+  - name: "zero and five"
+    stdin: "0 5"
+    expectedOutput: "Result: 25"
+    hidden: true
+  - name: "cancelling values"
+    stdin: "2 -2"
+    expectedOutput: "Result: 0"
+    hidden: true
+solution: |
+  #include <stdio.h>
+
+  #define SQUARE(x) ((x) * (x))
+
+  int main(void) {
+      int a, b;
+      scanf("%d %d", &a, &b);
+      printf("Result: %d\n", SQUARE(a + b));
+      return 0;
+  }
+---
+
+This program computes `(a + b)` squared -- but `SQUARE`'s definition is missing the parentheses from the lesson,
+and the call site makes it matter: `SQUARE(a + b)` passes an *expression*, not a bare variable.
+
+Expand it by hand the way the compiler does, with `a = 1, b = 2`: `SQUARE(a + b)` becomes, by pure text
+substitution, `a + b * a + b` -- which is `1 + 2 * 1 + 2 = 5`, not the `9` that `(1 + 2)^2` actually is. Fix the
+macro's definition (not the call site, and not the `main` logic) so every occurrence of `x` in the body, and the
+body as a whole, is wrapped in parentheses.

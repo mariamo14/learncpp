@@ -1,0 +1,72 @@
+---
+title: "Verbose Mode"
+lesson: "03-build-tooling-and-debugging/02-the-preprocessor"
+order: 3
+difficulty: "hard"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  #define VERBOSE
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      int doubled = n * 2;
+
+      // TODO: if VERBOSE is defined (it is, above), print this line
+      // BEFORE the normal output:
+      //   Debug: input was <n>
+      // Then always print the normal line:
+      //   Doubled: <doubled>
+      // Use #ifdef VERBOSE / #endif around the debug line -- not a
+      // runtime if statement.
+      return 0;
+  }
+tests:
+  - name: "sample: 5"
+    stdin: "5"
+    expectedOutput: |
+      Debug: input was 5
+      Doubled: 10
+    hidden: false
+  - name: "zero"
+    stdin: "0"
+    expectedOutput: |
+      Debug: input was 0
+      Doubled: 0
+    hidden: true
+  - name: "negative"
+    stdin: "-3"
+    expectedOutput: |
+      Debug: input was -3
+      Doubled: -6
+    hidden: true
+hints:
+  - "#ifdef and #endif are preprocessor lines, written like #define, with no semicolon -- they wrap the printf call, not replace it."
+  - "#ifdef VERBOSE\n    printf(\"Debug: input was %d\\n\", n);\n#endif\nprintf(\"Doubled: %d\\n\", doubled);"
+solution: |
+  #include <stdio.h>
+
+  #define VERBOSE
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      int doubled = n * 2;
+
+  #ifdef VERBOSE
+      printf("Debug: input was %d\n", n);
+  #endif
+      printf("Doubled: %d\n", doubled);
+      return 0;
+  }
+---
+
+`VERBOSE` is `#define`d at the top of this file (with no value -- just being defined at all is what `#ifdef`
+checks for). Wrap a debug `printf` in `#ifdef VERBOSE` / `#endif` so it prints before the normal output, exactly
+as described in the lesson's example.
+
+In a real project, `VERBOSE` (or a name like it) would typically be defined per build -- present when compiling a
+debug version, absent from a release build -- rather than hardcoded in the source like this. Here it's fixed so
+the exercise has one deterministic, gradable behavior; the mechanism is identical either way.

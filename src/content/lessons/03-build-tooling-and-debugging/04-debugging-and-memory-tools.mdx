@@ -1,7 +1,7 @@
 ---
 title: "Debugging with gdb/lldb & Memory-Checking Tools"
 module: "03-build-tooling-and-debugging"
-order: 3
+order: 4
 summary: "What a debugger session actually looks like, assert() as a debugger you always have, and what ASan/valgrind catch that reading code by eye usually can't."
 example:
   language: c
@@ -59,6 +59,25 @@ stops again, and `print` shows a variable's current value. What makes it powerfu
 `i == 3` instead of running through `i == 3` reveals a `<` that should have been `<=`, or an off-by-one in the
 bound, without needing to guess from the wrong final answer alone. This is the second exercise below, framed
 exactly this way: given the "trace," find and fix the bound.
+
+## A few more commands worth recognizing on sight
+
+The transcript above only needed `break`, `run`, `next`, and `print`, but a few more commands come up constantly
+enough to be worth knowing, even without a live session to practice them in:
+
+- **`step` vs. `next`** -- both execute one line and stop, but they differ the moment that line is a function call:
+  `next` runs the entire called function and stops at the line *after* it (treating the call as one opaque step);
+  `step` follows execution *into* the called function itself, stopping at its first line. Use `next` when you
+  trust a function and just want to keep moving past it; use `step` when the bug might be *inside* that call.
+- **`continue`** -- resume running at full speed until the next breakpoint (or the program ends). This is how you
+  get *out* of single-stepping once you've confirmed everything's fine for a while.
+- **`backtrace`** (often shortened to `bt`) -- print every currently-paused stack frame, from the one you're
+  stopped in back to `main`. This is the debugger equivalent of the frame-by-frame call traces from Module 2's
+  recursion lesson -- if you're stopped deep inside a recursive call and want to see the full chain of calls that
+  got you there, `backtrace` is how you'd actually look, rather than reasoning it out by hand.
+- **`watch <variable>`** -- instead of a breakpoint tied to a *line*, this pauses execution the instant a specific
+  variable's *value changes*, no matter which line does it. Useful exactly when you know *what* is going wrong (a
+  variable ending up with the wrong value) but not *where* in a large function it happens.
 
 ## `assert`: a debugger you don't have to attach
 
