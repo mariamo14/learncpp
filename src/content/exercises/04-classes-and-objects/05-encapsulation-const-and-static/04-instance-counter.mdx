@@ -1,0 +1,78 @@
+---
+title: "Instance Counter"
+lesson: "04-classes-and-objects/05-encapsulation-const-and-static"
+order: 4
+difficulty: "hard"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class Widget {
+  public:
+      Widget() {
+          // TODO: increment count every time a Widget is constructed.
+      }
+
+      static int count;
+  };
+
+  int Widget::count = 0;
+
+  int main() {
+      int n;
+      std::cin >> n;
+      for (int i = 0; i < n; i++) {
+          Widget w;
+      }
+      std::cout << "Count: " << Widget::count << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: 3"
+    stdin: "3"
+    expectedOutput: "Count: 3"
+    hidden: false
+  - name: "zero"
+    stdin: "0"
+    expectedOutput: "Count: 0"
+    hidden: true
+  - name: "larger count"
+    stdin: "10"
+    expectedOutput: "Count: 10"
+    hidden: true
+hints:
+  - "count already exists and is already correctly defined outside the class (int Widget::count = 0;) -- you only need to increment it, once, inside the constructor."
+  - "count++;"
+solution: |
+  #include <iostream>
+
+  class Widget {
+  public:
+      Widget() {
+          count++;
+      }
+
+      static int count;
+  };
+
+  int Widget::count = 0;
+
+  int main() {
+      int n;
+      std::cin >> n;
+      for (int i = 0; i < n; i++) {
+          Widget w;
+      }
+      std::cout << "Count: " << Widget::count << std::endl;
+      return 0;
+  }
+---
+
+Make `Widget`'s constructor increment `count` every time a `Widget` is built. `main` creates `n` of them, one per
+loop iteration, each one going out of scope (and being destroyed) at the end of that same iteration -- and yet
+`count` should still end up equal to `n`.
+
+That's the entire point of `static`: `count` is **one** shared value, not something that resets or gets destroyed
+along with each individual `Widget`. Every `Widget` -- however briefly it lives -- increments the exact same
+counter that every other `Widget` does, which is why the total comes out right even though no single object stays
+alive to remember it.

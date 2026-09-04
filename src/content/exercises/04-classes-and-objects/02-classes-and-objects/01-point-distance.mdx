@@ -1,0 +1,76 @@
+---
+title: "Point Distance"
+lesson: "04-classes-and-objects/02-classes-and-objects"
+order: 1
+difficulty: "easy"
+language: "cpp"
+starter: |
+  #include <iostream>
+  #include <cmath>
+  #include <iomanip>
+
+  class Point2D {
+  public:
+      double x;
+      double y;
+
+      double distanceFromOrigin() {
+          // TODO: return the distance from (0, 0) to (x, y):
+          // sqrt(x*x + y*y).
+          return 0.0;
+      }
+  };
+
+  int main() {
+      Point2D p;
+      std::cin >> p.x >> p.y;
+      std::cout << std::fixed << std::setprecision(2);
+      std::cout << "Distance: " << p.distanceFromOrigin() << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: 3, 4"
+    stdin: "3 4"
+    expectedOutput: "Distance: 5.00"
+    hidden: false
+  - name: "origin itself"
+    stdin: "0 0"
+    expectedOutput: "Distance: 0.00"
+    hidden: true
+  - name: "negative coordinates"
+    stdin: "-3 -4"
+    expectedOutput: "Distance: 5.00"
+    hidden: true
+hints:
+  - "Inside a member function, x and y refer to this object's own members -- no this-> needed unless a parameter name collides with one of them, which isn't the case here."
+  - "return std::sqrt(x * x + y * y);"
+solution: |
+  #include <iostream>
+  #include <cmath>
+  #include <iomanip>
+
+  class Point2D {
+  public:
+      double x;
+      double y;
+
+      double distanceFromOrigin() {
+          return std::sqrt(x * x + y * y);
+      }
+  };
+
+  int main() {
+      Point2D p;
+      std::cin >> p.x >> p.y;
+      std::cout << std::fixed << std::setprecision(2);
+      std::cout << "Distance: " << p.distanceFromOrigin() << std::endl;
+      return 0;
+  }
+---
+
+Complete `Point2D::distanceFromOrigin`, a member function that computes how far the point `(x, y)` is from the
+origin, using the standard distance formula `sqrt(x^2 + y^2)`.
+
+This is the smallest possible class with real behavior: two public member variables, and one member function that
+reads them without needing them passed in as parameters -- `x` and `y` are already in scope inside any of
+`Point2D`'s own member functions, because they belong to whichever object the function was called through.

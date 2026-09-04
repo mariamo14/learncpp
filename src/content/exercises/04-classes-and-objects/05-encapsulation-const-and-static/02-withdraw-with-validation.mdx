@@ -1,0 +1,96 @@
+---
+title: "Withdraw with Validation"
+lesson: "04-classes-and-objects/05-encapsulation-const-and-static"
+order: 2
+difficulty: "medium"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class BankAccount {
+  public:
+      BankAccount(double startingBalance) : balance(startingBalance) {
+      }
+
+      double getBalance() const {
+          return balance;
+      }
+
+      void withdraw(double amount) {
+          // TODO: if amount is greater than balance, print exactly
+          // "Rejected" and leave balance unchanged. Otherwise, subtract
+          // amount from balance (no output from this function in that
+          // case).
+      }
+
+  private:
+      double balance;
+  };
+
+  int main() {
+      double start, amount;
+      std::cin >> start >> amount;
+      BankAccount acc(start);
+      acc.withdraw(amount);
+      std::cout << "Balance: " << acc.getBalance() << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: valid withdrawal"
+    stdin: "100 30"
+    expectedOutput: "Balance: 70"
+    hidden: false
+  - name: "rejected -- amount exceeds balance"
+    stdin: "50 100"
+    expectedOutput: |
+      Rejected
+      Balance: 50
+    hidden: true
+  - name: "withdraw exactly the full balance -- allowed"
+    stdin: "100 100"
+    expectedOutput: "Balance: 0"
+    hidden: true
+hints:
+  - "This is the actual point of encapsulation from the lesson: balance can only change through withdraw (and deposit), so withdraw is the one place that gets to enforce the rule that you can't overdraw."
+  - "if (amount > balance) { std::cout << \"Rejected\" << std::endl; return; } balance -= amount;"
+solution: |
+  #include <iostream>
+
+  class BankAccount {
+  public:
+      BankAccount(double startingBalance) : balance(startingBalance) {
+      }
+
+      double getBalance() const {
+          return balance;
+      }
+
+      void withdraw(double amount) {
+          if (amount > balance) {
+              std::cout << "Rejected" << std::endl;
+              return;
+          }
+          balance -= amount;
+      }
+
+  private:
+      double balance;
+  };
+
+  int main() {
+      double start, amount;
+      std::cin >> start >> amount;
+      BankAccount acc(start);
+      acc.withdraw(amount);
+      std::cout << "Balance: " << acc.getBalance() << std::endl;
+      return 0;
+  }
+---
+
+Complete `withdraw` so it refuses to overdraw the account: if `amount` is more than the current `balance`, print
+`Rejected` and leave `balance` untouched; otherwise, subtract `amount` normally.
+
+This is what `private` data was for: because nothing outside `BankAccount` can touch `balance` directly, `withdraw`
+is the *only* path that can change it, which means it's the one place capable of enforcing this rule at all. Direct
+field access (as if `balance` were `public`) could never have stopped an overdraw -- there'd be no function in the
+way to say no.

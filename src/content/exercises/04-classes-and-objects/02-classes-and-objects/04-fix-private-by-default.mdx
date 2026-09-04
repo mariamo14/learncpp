@@ -1,0 +1,59 @@
+---
+title: "Fix: Private by Default"
+lesson: "04-classes-and-objects/02-classes-and-objects"
+order: 4
+difficulty: "hard"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class Counter {
+      int count = 0;
+
+      void increment() {
+          count = count + 1;
+      }
+  };
+
+  int main() {
+      Counter c;
+      c.increment();
+      c.increment();
+      std::cout << "Count: " << c.count << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: two increments"
+    stdin: ""
+    expectedOutput: "Count: 2"
+    hidden: false
+solution: |
+  #include <iostream>
+
+  class Counter {
+  public:
+      int count = 0;
+
+      void increment() {
+          count = count + 1;
+      }
+  };
+
+  int main() {
+      Counter c;
+      c.increment();
+      c.increment();
+      std::cout << "Count: " << c.count << std::endl;
+      return 0;
+  }
+---
+
+This `Counter` class doesn't compile. Submit it as-is and read the errors before changing anything -- you'll see
+two different members, `increment` and `count`, each reported as `is private within this context`, right at the
+lines in `main` that try to use them.
+
+Neither member has an explicit `private:` label anywhere in the class -- and that's exactly the bug. `class`
+defaults to `private` access for everything above the first access-specifier label, unlike `struct`, which
+defaults to `public`. Since `main` needs to call `c.increment()` and read `c.count` from outside the class, both
+members need to be reachable from there. Add a `public:` label at the top of the class body, before both members,
+to fix it -- don't change `struct`/`class` itself, and don't change any of the logic.

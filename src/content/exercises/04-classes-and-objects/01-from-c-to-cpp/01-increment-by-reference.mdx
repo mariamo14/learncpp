@@ -1,0 +1,58 @@
+---
+title: "Increment by Reference"
+lesson: "04-classes-and-objects/01-from-c-to-cpp"
+order: 1
+difficulty: "easy"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  void increment(int &value) {
+      // TODO: increase the int that value refers to by 1.
+  }
+
+  int main() {
+      int n;
+      std::cin >> n;
+      increment(n);
+      std::cout << "Result: " << n << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: 5"
+    stdin: "5"
+    expectedOutput: "Result: 6"
+    hidden: false
+  - name: "negative"
+    stdin: "-1"
+    expectedOutput: "Result: 0"
+    hidden: true
+  - name: "larger value"
+    stdin: "99"
+    expectedOutput: "Result: 100"
+    hidden: true
+hints:
+  - "Inside increment, value already behaves exactly like n does in main -- no * needed to reach through it, unlike the pointer version from Module 2."
+  - "value = value + 1; (or value++;) is the entire function body."
+solution: |
+  #include <iostream>
+
+  void increment(int &value) {
+      value = value + 1;
+  }
+
+  int main() {
+      int n;
+      std::cin >> n;
+      increment(n);
+      std::cout << "Result: " << n << std::endl;
+      return 0;
+  }
+---
+
+Complete `increment` so it adds `1` to the `int` its reference parameter refers to. `main` reads `n`, calls
+`increment(n)` (note: no `&n` at the call site -- that's the other giveaway this is a reference, not a pointer),
+and prints the result.
+
+This is the exact `double_value`-style out-parameter pattern from Module 2, rewritten with a reference instead of a
+pointer -- same effect on the caller's variable, no dereferencing required to get there.

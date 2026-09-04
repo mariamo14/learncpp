@@ -1,0 +1,66 @@
+---
+title: "Two Constructors"
+lesson: "04-classes-and-objects/03-constructors"
+order: 2
+difficulty: "medium"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class Temperature {
+  public:
+      double degrees;
+
+      // TODO: add two constructors, both using the member initializer list:
+      //   Temperature()         -- initializes degrees to 0
+      //   Temperature(double d) -- initializes degrees to d
+  };
+
+  int main() {
+      Temperature freezing;
+      Temperature custom(37.5);
+
+      std::cout << "freezing = " << freezing.degrees << std::endl;
+      std::cout << "custom = " << custom.degrees << std::endl;
+      return 0;
+  }
+tests:
+  - name: "default and parameterized"
+    stdin: ""
+    expectedOutput: |
+      freezing = 0
+      custom = 37.5
+    hidden: false
+hints:
+  - "This is exactly the lesson's Fraction pattern -- two constructors, same class, distinguished by their parameter lists the same way overloaded functions are."
+  - "Temperature() : degrees(0) {\n}\nTemperature(double d) : degrees(d) {\n}"
+solution: |
+  #include <iostream>
+
+  class Temperature {
+  public:
+      double degrees;
+
+      Temperature() : degrees(0) {
+      }
+
+      Temperature(double d) : degrees(d) {
+      }
+  };
+
+  int main() {
+      Temperature freezing;
+      Temperature custom(37.5);
+
+      std::cout << "freezing = " << freezing.degrees << std::endl;
+      std::cout << "custom = " << custom.degrees << std::endl;
+      return 0;
+  }
+---
+
+Give `Temperature` two constructors: a default one that sets `degrees` to `0`, and one that takes a starting value.
+`main` creates one object each way -- `Temperature freezing;` (no arguments) and `Temperature custom(37.5);` (one
+argument) -- and both need to work.
+
+This is the same overload-resolution idea from this module's first lesson, applied to constructors specifically:
+the compiler picks which constructor runs based on how many arguments the object is created with.

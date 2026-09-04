@@ -1,0 +1,108 @@
+---
+title: "Destructors & Object Lifetime"
+module: "04-classes-and-objects"
+order: 4
+summary: "What actually happens when an object 'goes away' -- and new/delete, C++'s constructor-and-destructor-aware alternative to malloc/free."
+example:
+  language: cpp
+  stdin: ""
+  code: |
+    #include <iostream>
+    #include <string>
+
+    class Logger {
+    public:
+        std::string name;
+
+        Logger(std::string n) : name(n) {
+            std::cout << "Constructing " << name << std::endl;
+        }
+
+        ~Logger() {
+            std::cout << "Destructing " << name << std::endl;
+        }
+    };
+
+    int main() {
+        std::cout << "start of main" << std::endl;
+        {
+            Logger local("local");
+            std::cout << "inside inner scope" << std::endl;
+        }
+        std::cout << "after inner scope" << std::endl;
+
+        Logger *heapObj = new Logger("heap");
+        std::cout << "before delete" << std::endl;
+        delete heapObj;
+        std::cout << "end of main" << std::endl;
+        return 0;
+    }
+---
+
+## Why this matters
+
+Module 2 established that a stack variable is destroyed automatically the instant its scope ends. What that
+actually meant for a plain `int` was uninteresting -- its memory is just reclaimed. For a class object, it means
+something with real consequences: a special member function, the **destructor**, runs automatically first. This
+lesson is about exactly when that happens, and about `new`/`delete`, the C++ tool that extends the same guarantee
+to objects living on the heap.
+
+## Declaring a destructor: `~ClassName()`
+
+```cpp
+~Logger() {
+    std::cout << "Destructing " << name << std::endl;
+}
+```
+
+A destructor is a member function named after the class with a `~` in front, taking **no** parameters and no
+return type -- and unlike constructors, a class can have at most one. It runs automatically, with no explicit call
+anywhere in your code, at the exact moment an object's lifetime ends.
+
+## Tracing the worked example's output
+
+Run it and watch the order carefully -- it's the entire point of this lesson:
+
+```
+start of main
+Constructing local
+inside inner scope
+Destructing local          <- the instant the inner { } block ends, not when main ends
+after inner scope
+Constructing heap
+before delete
+Destructing heap            <- exactly when delete runs, not before, not automatically later
+end of main
+```
+
+`local` is destroyed the moment its enclosing `{ }` block ends -- immediately, deterministically, without waiting
+for `main` itself to finish. This is exactly the stack-frame lifetime rule from Module 2, now with a visible,
+concrete side effect attached to it. `heapObj`, by contrast, points at an object that will live until *you*
+explicitly end its life -- which `delete` does, right where it's written, not automatically at scope end (the
+pointer `heapObj` itself is destroyed when `main` ends, the same as any local variable, but that only destroys the
+pointer -- a plain address -- not the object it was pointing at).
+
+## `new` and `delete`: C++'s constructor-and-destructor-aware alternative to `malloc`/`free`
+
+`Logger *heapObj = new Logger("heap");` does two things `malloc` fundamentally cannot: it allocates enough memory
+for a `Logger`, **and** it calls `Logger`'s constructor on that memory, with `"heap"` as the argument -- which is
+exactly why `"Constructing heap"` prints. `malloc(sizeof(Logger))` would hand you back raw, unconstructed memory --
+no constructor call, `name` never initialized, and if `Logger` had a `numerator`/`denominator` pair from earlier
+lessons, quite possibly garbage in both. `malloc` and `free` know nothing about constructors or destructors at
+all; they only know how to reserve and release bytes.
+
+`delete heapObj;` is the mirror image: it calls `Logger`'s destructor first (hence `"Destructing heap"` printing
+exactly there, not later), *then* releases the memory -- the reverse of what `new` did, in the reverse order,
+exactly like the general RAII pattern this previews (full treatment next module). From here on, when you need a
+single object on the heap, reach for `new`/`delete` instead of `malloc`/`free` -- they're aware of your class in a
+way `malloc`/`free` simply are not. (Module 2's rules about matching every allocation with exactly one
+deallocation, and never using a pointer after freeing it, still apply identically here -- only the specific
+function names change.)
+
+## Multiple objects are destroyed in reverse order of construction
+
+One more fact worth having ready: when several stack objects share a scope, they're destroyed in the **exact
+reverse** of the order they were constructed in -- the most recently created one is destroyed first, unwinding
+back to the first. This mirrors how you'd naturally clean up a stack of anything: undo the most recent step first.
+It's also exactly why this pattern is safe for objects whose destructors depend on other objects still being
+alive -- the last thing built is the first thing torn down, never the other way around.

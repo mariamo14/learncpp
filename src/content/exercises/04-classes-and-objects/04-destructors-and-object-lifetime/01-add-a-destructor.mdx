@@ -1,0 +1,74 @@
+---
+title: "Add a Destructor"
+lesson: "04-classes-and-objects/04-destructors-and-object-lifetime"
+order: 1
+difficulty: "easy"
+language: "cpp"
+starter: |
+  #include <iostream>
+  #include <string>
+
+  class Resource {
+  public:
+      std::string name;
+
+      Resource(std::string n) : name(n) {
+          std::cout << "Created: " << name << std::endl;
+      }
+
+      // TODO: add a destructor that prints: Destroyed: <name>
+  };
+
+  int main() {
+      std::cout << "before" << std::endl;
+      {
+          Resource r("widget");
+          std::cout << "using widget" << std::endl;
+      }
+      std::cout << "after" << std::endl;
+      return 0;
+  }
+tests:
+  - name: "construction and destruction order"
+    stdin: ""
+    expectedOutput: |
+      before
+      Created: widget
+      using widget
+      Destroyed: widget
+      after
+    hidden: false
+hints:
+  - "A destructor's name is ~ followed by the class name exactly, with no parameters and no return type -- ~Resource(), not ~resource() or Resource~()."
+  - "~Resource() {\n    std::cout << \"Destroyed: \" << name << std::endl;\n}"
+solution: |
+  #include <iostream>
+  #include <string>
+
+  class Resource {
+  public:
+      std::string name;
+
+      Resource(std::string n) : name(n) {
+          std::cout << "Created: " << name << std::endl;
+      }
+
+      ~Resource() {
+          std::cout << "Destroyed: " << name << std::endl;
+      }
+  };
+
+  int main() {
+      std::cout << "before" << std::endl;
+      {
+          Resource r("widget");
+          std::cout << "using widget" << std::endl;
+      }
+      std::cout << "after" << std::endl;
+      return 0;
+  }
+---
+
+Add a destructor to `Resource` that prints `Destroyed: <name>`. The expected output pins down exactly *when* it
+should fire: right as the inner `{ }` block ends, after `"using widget"` but before `"after"` -- not at the end of
+`main`, and not anywhere you'd need to call it explicitly.

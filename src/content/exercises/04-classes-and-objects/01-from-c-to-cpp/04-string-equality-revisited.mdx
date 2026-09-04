@@ -1,0 +1,63 @@
+---
+title: "String Equality, Revisited"
+lesson: "04-classes-and-objects/01-from-c-to-cpp"
+order: 4
+difficulty: "hard"
+language: "cpp"
+starter: |
+  #include <iostream>
+  #include <string>
+
+  int main() {
+      std::string a, b;
+      std::cin >> a >> b;
+
+      // TODO: print "Equal" if a and b hold the same text, "Not equal"
+      // otherwise. Use == directly.
+      return 0;
+  }
+tests:
+  - name: "sample: equal words"
+    stdin: "cat cat"
+    expectedOutput: "Equal"
+    hidden: false
+  - name: "different words, same length"
+    stdin: "cat dog"
+    expectedOutput: "Not equal"
+    hidden: true
+  - name: "one is a prefix of the other"
+    stdin: "cat cats"
+    expectedOutput: "Not equal"
+    hidden: true
+  - name: "equal, longer"
+    stdin: "same same"
+    expectedOutput: "Equal"
+    hidden: true
+hints:
+  - "if (a == b) { std::cout << \"Equal\" << std::endl; } else { std::cout << \"Not equal\" << std::endl; }"
+solution: |
+  #include <iostream>
+  #include <string>
+
+  int main() {
+      std::string a, b;
+      std::cin >> a >> b;
+
+      if (a == b) {
+          std::cout << "Equal" << std::endl;
+      } else {
+          std::cout << "Not equal" << std::endl;
+      }
+      return 0;
+  }
+---
+
+This is the exact same problem as Module 2's "String Equality Without strcmp" exercise -- including the same
+`"cat"` vs `"cats"` trap case, where every character of the shorter word matches a prefix of the longer one. There,
+you had to write a character-by-character loop and explicitly check that both strings hit their null terminator at
+the same position. Here, `std::string` already knows its own length (it doesn't rely on scanning for a terminator
+at all), so `==` just works correctly, including on that trap case, with no loop of your own.
+
+This isn't cheating -- it's the entire point of the last lesson's `std::string` section. Recognizing when a
+language feature has already solved a problem you'd otherwise hand-rebuild is a real skill, not a shortcut around
+learning.

@@ -1,0 +1,54 @@
+---
+title: "String Greeting"
+lesson: "04-classes-and-objects/01-from-c-to-cpp"
+order: 3
+difficulty: "medium"
+language: "cpp"
+starter: |
+  #include <iostream>
+  #include <string>
+
+  int main() {
+      std::string name;
+      std::cin >> name;
+
+      // TODO: build and print a greeting using string concatenation
+      // (+), in the exact form: Hello, <name>! Welcome.
+      return 0;
+  }
+tests:
+  - name: "sample: Ada"
+    stdin: "Ada"
+    expectedOutput: "Hello, Ada! Welcome."
+    hidden: false
+  - name: "different name"
+    stdin: "Grace"
+    expectedOutput: "Hello, Grace! Welcome."
+    hidden: true
+  - name: "single character"
+    stdin: "X"
+    expectedOutput: "Hello, X! Welcome."
+    hidden: true
+hints:
+  - "std::string supports + directly between strings (and between a string and a string literal) -- no strcat, no buffer size to worry about."
+  - "std::string greeting = \"Hello, \" + name + \"! Welcome.\"; std::cout << greeting << std::endl;"
+solution: |
+  #include <iostream>
+  #include <string>
+
+  int main() {
+      std::string name;
+      std::cin >> name;
+
+      std::string greeting = "Hello, " + name + "! Welcome.";
+      std::cout << greeting << std::endl;
+      return 0;
+  }
+---
+
+Read a name and print a greeting built by concatenating string pieces with `+`, in the exact form
+`Hello, Ada! Welcome.`
+
+Compare this to how much bookkeeping `strcat` needed in Module 2 -- a correctly-sized destination buffer declared
+up front, `strcat` never checking whether it actually fit. `std::string`'s `+` handles all of that internally; you
+just describe the string you want.

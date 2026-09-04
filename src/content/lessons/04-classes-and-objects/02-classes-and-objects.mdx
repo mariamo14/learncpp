@@ -1,0 +1,116 @@
+---
+title: "Classes & Objects"
+module: "04-classes-and-objects"
+order: 2
+summary: "Bundling data and the functions that operate on it into one type -- member variables, member functions, access specifiers, and the this pointer."
+example:
+  language: cpp
+  stdin: ""
+  code: |
+    #include <iostream>
+
+    class Fraction {
+    public:
+        int numerator;
+        int denominator;
+
+        double toDouble() {
+            return static_cast<double>(numerator) / denominator;
+        }
+    };
+
+    int main() {
+        Fraction half;
+        half.numerator = 1;
+        half.denominator = 2;
+
+        std::cout << "value = " << half.toDouble() << std::endl;
+        return 0;
+    }
+---
+
+## Why this matters
+
+Every data type you've used so far -- `int`, `double`, even a `struct` if you've reached for one -- bundles
+*data* together, but not the functions that operate on it; you write those separately and pass the data in. A
+**class** bundles both: the data (`numerator`, `denominator`) and the operations that make sense on it
+(`toDouble`) live in one type. This is the shift this entire module is about -- everything else (constructors,
+destructors, encapsulation) builds on this one idea.
+
+## Declaring a class: member variables and member functions
+
+```cpp
+class Fraction {
+public:
+    int numerator;
+    int denominator;
+
+    double toDouble() {
+        return static_cast<double>(numerator) / denominator;
+    }
+};
+```
+
+`numerator` and `denominator` are **member variables** -- data that belongs to every `Fraction`, individually;
+each `Fraction` object gets its own copy of both. `toDouble` is a **member function** -- code that belongs to the
+class itself (only one copy exists, shared by every object) but operates on *whichever* object it's called
+through. Note the semicolon after the closing `}` of the class -- easy to forget, and required.
+
+`Fraction half;` creates an actual object -- a real variable of type `Fraction`, with its own `numerator` and
+`denominator`, the same way `int x;` creates a real `int`. `half.numerator = 1;` and `half.toDouble()` use `.` to
+reach a specific object's members, exactly like accessing a `struct` field, because a class genuinely is a kind of
+struct with functions attached -- which is the entire subject of the next section.
+
+## `struct` and `class` are (almost) the same keyword
+
+This surprises people coming from languages where they're unrelated concepts: in C++, `struct` and `class` both
+declare exactly the same kind of thing -- a type with member variables and member functions -- and everything in
+this lesson works identically if you replace `class Fraction` with `struct Fraction` above. The **only**
+difference is what's accessible by default before you write your first access specifier: **`struct` members default
+to `public`**, exactly matching C's plain-data structs; **`class` members default to `private`**. Convention (not
+the compiler) uses `struct` for simple bundles of public data with little or no behavior, and `class` when you're
+building something with real invariants to protect -- which is where `public`/`private` themselves come in.
+
+## `public` and `private`: what's accessible from outside the class
+
+```cpp
+class Fraction {
+public:
+    // accessible from anywhere -- main, other functions, anywhere at all
+private:
+    // accessible only from inside Fraction's own member functions
+};
+```
+
+The worked example marks everything `public`, so `main` can reach `half.numerator` directly. Mark something
+`private` instead, and code outside the class -- `main`, in particular -- can no longer see it at all; only
+`Fraction`'s own member functions can. This is the mechanical half of **encapsulation**: hiding a class's internal
+data so nothing outside it can put that data into a nonsensical state (a `Fraction` with `denominator = 0`, say)
+by reaching in and setting it directly. The next few lessons build toward using `private` properly -- for now, just
+recognize the two keywords and what "accessible from outside" means.
+
+## The `this` pointer: referring to "the current object" explicitly
+
+Every member function secretly receives one extra, implicit parameter: `this`, a pointer to the specific object it
+was called through. You've been using it implicitly already -- inside `toDouble`, plain `numerator` is shorthand
+for `this->numerator`. You'll need `this` explicitly the moment a parameter name shadows a member's name, which
+happens constantly in one specific place: setter-style functions.
+
+```cpp
+void setNumerator(int numerator) {
+    this->numerator = numerator;   // this->numerator is the member; numerator alone is the parameter
+}
+```
+
+Without `this->`, `numerator = numerator;` would just assign the parameter to itself, leaving the actual member
+variable untouched -- a real, easy-to-make bug. `this->` disambiguates: "the member variable belonging to this
+object," specifically, not whatever plain name is closest in scope.
+
+## `static_cast`: the C++ way to write a cast
+
+The worked example uses `static_cast<double>(numerator)` where earlier modules would have written the C-style cast
+`(double)numerator`. Both do the same conversion here, but `static_cast` is the idiomatic C++ choice from here on:
+it only allows conversions that make sense between related types (like `int` to `double`), and the compiler
+rejects a `static_cast` that doesn't -- where a C-style cast will silently attempt almost anything, correct or not,
+which is exactly the kind of silent-failure risk this course has flagged before. You'll see `static_cast` used
+throughout the rest of this course in place of C-style casts.

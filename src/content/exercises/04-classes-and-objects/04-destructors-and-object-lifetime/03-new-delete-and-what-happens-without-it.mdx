@@ -1,0 +1,79 @@
+---
+title: "new, delete, and What Happens Without It"
+lesson: "04-classes-and-objects/04-destructors-and-object-lifetime"
+order: 3
+difficulty: "hard"
+language: "cpp"
+starter: |
+  #include <iostream>
+  #include <string>
+
+  class Resource {
+  public:
+      std::string name;
+
+      Resource(std::string n) : name(n) {
+          std::cout << "Created: " << name << std::endl;
+      }
+
+      ~Resource() {
+          std::cout << "Destroyed: " << name << std::endl;
+      }
+  };
+
+  int main() {
+      Resource *a = new Resource("alpha");
+      Resource *b = new Resource("beta");
+
+      // TODO: delete only `a` -- not `b`, on purpose -- then print
+      // exactly: done
+      return 0;
+  }
+tests:
+  - name: "one deleted, one leaked on purpose"
+    stdin: ""
+    expectedOutput: |
+      Created: alpha
+      Created: beta
+      Destroyed: alpha
+      done
+    hidden: false
+hints:
+  - "delete a; runs alpha's destructor immediately, right where it's written -- exactly like the lesson's worked example."
+  - "b is never deleted in this exercise, on purpose -- and Destroyed: beta never appears in the expected output, because its destructor genuinely never runs. That's not a mistake in the expected output; it's the point."
+solution: |
+  #include <iostream>
+  #include <string>
+
+  class Resource {
+  public:
+      std::string name;
+
+      Resource(std::string n) : name(n) {
+          std::cout << "Created: " << name << std::endl;
+      }
+
+      ~Resource() {
+          std::cout << "Destroyed: " << name << std::endl;
+      }
+  };
+
+  int main() {
+      Resource *a = new Resource("alpha");
+      Resource *b = new Resource("beta");
+
+      delete a;
+      std::cout << "done" << std::endl;
+      return 0;
+  }
+---
+
+Two `Resource` objects are allocated with `new`. Delete only `a`, then print `done` -- leave `b` un-deleted,
+deliberately, so its destructor's *silence* is visible in the expected output.
+
+Look closely at the expected output: `Destroyed: beta` never appears. That's the actual point of this exercise,
+not an oversight -- `b`'s destructor genuinely never runs, because nothing ever calls `delete` on it. In a real
+program this is exactly a memory leak, the C++ equivalent of forgetting `free` in Module 2, just with a
+constructor/destructor pair making the consequence directly visible here instead of invisible. Every `new` still
+needs exactly one matching `delete`, precisely as Module 2 required for every `malloc` and `free` -- this exercise
+just makes what "forgetting" costs impossible to miss.

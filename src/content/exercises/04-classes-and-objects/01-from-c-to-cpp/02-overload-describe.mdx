@@ -1,0 +1,78 @@
+---
+title: "Overload describe"
+lesson: "04-classes-and-objects/01-from-c-to-cpp"
+order: 2
+difficulty: "medium"
+language: "cpp"
+starter: |
+  #include <iostream>
+  #include <iomanip>
+
+  void describe(int n) {
+      // TODO: print exactly: Integer: <n>
+  }
+
+  void describe(double x) {
+      // TODO: print exactly: Double: <x, formatted to 2 decimal places>
+  }
+
+  int main() {
+      int i;
+      double d;
+      std::cin >> i >> d;
+      describe(i);
+      describe(d);
+      return 0;
+  }
+tests:
+  - name: "sample: 7 and 3.5"
+    stdin: "7 3.5"
+    expectedOutput: |
+      Integer: 7
+      Double: 3.50
+    hidden: false
+  - name: "negative values"
+    stdin: "-2 -1.25"
+    expectedOutput: |
+      Integer: -2
+      Double: -1.25
+    hidden: true
+  - name: "zero"
+    stdin: "0 0.1"
+    expectedOutput: |
+      Integer: 0
+      Double: 0.10
+    hidden: true
+hints:
+  - "Both functions are named describe -- the compiler picks which one to call at each site in main based on i's and d's types. You're not choosing which one runs; the overload resolution already did that for you."
+  - "std::cout << std::fixed << std::setprecision(2) inside the double overload configures 2-decimal formatting for every double printed afterward -- put it before the value in the same << chain, or on its own line before the printf-equivalent."
+  - "void describe(int n) { std::cout << \"Integer: \" << n << std::endl; }\nvoid describe(double x) { std::cout << std::fixed << std::setprecision(2) << \"Double: \" << x << std::endl; }"
+solution: |
+  #include <iostream>
+  #include <iomanip>
+
+  void describe(int n) {
+      std::cout << "Integer: " << n << std::endl;
+  }
+
+  void describe(double x) {
+      std::cout << std::fixed << std::setprecision(2) << "Double: " << x << std::endl;
+  }
+
+  int main() {
+      int i;
+      double d;
+      std::cin >> i >> d;
+      describe(i);
+      describe(d);
+      return 0;
+  }
+---
+
+Complete both overloads of `describe` -- one for `int`, one for `double` -- each printing its argument with a
+different label and (for the `double` version) a fixed 2-decimal-place format.
+
+`main` calls `describe` twice, once with an `int` argument and once with a `double` one, and never says which
+version it means -- the compiler figures that out from each argument's type, at compile time, the same way the
+lesson's `add` example did. Notice `std::setprecision(2)` only needs to be sent to `cout` once, inside the `double`
+overload -- it stays in effect for that stream from then on.

@@ -1,0 +1,68 @@
+---
+title: "Point with Constructor"
+lesson: "04-classes-and-objects/03-constructors"
+order: 1
+difficulty: "easy"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class Point2D {
+  public:
+      double x;
+      double y;
+
+      // TODO: add a constructor Point2D(double px, double py) that
+      // initializes x and y using the member initializer list.
+  };
+
+  int main() {
+      double a, b;
+      std::cin >> a >> b;
+      Point2D p(a, b);
+      std::cout << "x = " << p.x << ", y = " << p.y << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: 3, 4"
+    stdin: "3 4"
+    expectedOutput: "x = 3, y = 4"
+    hidden: false
+  - name: "zero"
+    stdin: "0 0"
+    expectedOutput: "x = 0, y = 0"
+    hidden: true
+  - name: "negative and fractional"
+    stdin: "-1.5 2.5"
+    expectedOutput: "x = -1.5, y = 2.5"
+    hidden: true
+hints:
+  - "The constructor's name matches the class exactly, takes no return type, and uses : x(px), y(py) before the (empty) body -- the same shape as the lesson's Fraction constructors."
+  - "Point2D(double px, double py) : x(px), y(py) {\n}"
+solution: |
+  #include <iostream>
+
+  class Point2D {
+  public:
+      double x;
+      double y;
+
+      Point2D(double px, double py) : x(px), y(py) {
+      }
+  };
+
+  int main() {
+      double a, b;
+      std::cin >> a >> b;
+      Point2D p(a, b);
+      std::cout << "x = " << p.x << ", y = " << p.y << std::endl;
+      return 0;
+  }
+---
+
+Add a constructor to `Point2D` that takes `x` and `y` as arguments and initializes the object's members from them,
+using the member initializer list -- not assignment in the body.
+
+`main` already calls `Point2D p(a, b);` -- your only job is making that constructor exist. Parameter names `px`/`py`
+(rather than `x`/`y`) sidestep needing `this->` here, exactly as the lesson noted -- that only becomes necessary
+once a parameter shares a member's exact name.

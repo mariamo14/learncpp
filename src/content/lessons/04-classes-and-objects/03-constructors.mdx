@@ -1,0 +1,101 @@
+---
+title: "Constructors"
+module: "04-classes-and-objects"
+order: 3
+summary: "How an object gets its initial values -- guaranteed, automatically -- and why the member initializer list isn't just a shorter way to write assignment."
+example:
+  language: cpp
+  stdin: ""
+  code: |
+    #include <iostream>
+
+    class Fraction {
+    public:
+        int numerator;
+        int denominator;
+
+        Fraction() : numerator(0), denominator(1) {
+        }
+
+        Fraction(int n, int d) : numerator(n), denominator(d) {
+        }
+
+        double toDouble() {
+            return static_cast<double>(numerator) / denominator;
+        }
+    };
+
+    int main() {
+        Fraction zero;
+        Fraction half(1, 2);
+
+        std::cout << "zero = " << zero.toDouble() << std::endl;
+        std::cout << "half = " << half.toDouble() << std::endl;
+        return 0;
+    }
+---
+
+## Why this matters
+
+The last lesson's `Point2D p;` created an object with `x` and `y` holding garbage -- nothing set them, the same
+way a plain `int n;` holds garbage until assigned. Forgetting to initialize a member is exactly the kind of bug
+Module 1 flagged for plain variables, except now it's easy to forget across *every* object you ever create of that
+type, since nothing forces you to remember. A **constructor** is a special member function that runs automatically
+every time an object is created, specifically to close that gap -- an object can be *guaranteed* to start in a
+valid state, not just usually.
+
+## Declaring a constructor: a function named after the class, no return type
+
+```cpp
+Fraction() : numerator(0), denominator(1) {
+}
+```
+
+A constructor is a member function with the class's exact name and **no return type at all** -- not even `void`.
+This one takes no arguments, which makes it the **default constructor**: the one C++ calls automatically when you
+write `Fraction zero;` with no parentheses or arguments. After that line runs, `zero` is guaranteed to have
+`numerator == 0` and `denominator == 1` -- not "probably," not "as long as nobody forgot a line," guaranteed by the
+type itself.
+
+## The member initializer list: `: numerator(n), denominator(d)`
+
+The part between the parameter list and the opening `{` -- `: numerator(n), denominator(d)` -- is the **member
+initializer list**, and it's doing something meaningfully different from assignment, even though
+`numerator = n;` inside the body would often produce the same end result. The initializer list sets each member's
+*starting* value as the object is constructed; writing `numerator = n;` in the body instead means the member gets
+some default value first, and is then immediately overwritten -- an extra, usually invisible step.
+
+That difference becomes unavoidable, not just stylistic, the moment a member is a `const` or a reference: neither
+one can be assigned to *after* it exists (you already know this about references from the last lesson, and `const`
+works the same way here) -- both **must** be given their value at the moment they're created, which the
+initializer list does and body assignment cannot:
+
+```cpp
+class Trade {
+public:
+    const int id;   // must use the initializer list -- can't assign to a const member in the body
+    Trade(int tradeId) : id(tradeId) {
+    }
+};
+```
+
+Get in the habit of using the initializer list for every member, not just the ones that strictly require it --
+it's more efficient in general (no default-then-overwrite step) and it means you'll never need to remember which
+members happen to require it.
+
+## Multiple constructors: overloading, applied to construction
+
+The worked example defines **two** constructors -- a default one and one taking `(int, int)` -- and both coexist,
+resolved the same way overloaded functions were in the first lesson of this module: `Fraction zero;` (no
+arguments) calls the first, `Fraction half(1, 2);` (two `int` arguments) calls the second. A class can have as
+many constructors as it has genuinely distinct useful ways to be created.
+
+## A quiet trap: writing any constructor removes the free one
+
+If you write **no** constructor at all, C++ generates a default constructor for you automatically, which
+default-initializes each member (leaving built-in types like `int` and `double` with garbage values, exactly as if
+you'd written nothing). The moment you write **any** constructor yourself -- even just the `(int, int)` one, with
+no default constructor of your own -- that free, compiler-generated default constructor disappears entirely.
+`Fraction zero;` with no arguments would then be a compile error, not falling back to any implicit behavior. If
+you want a class to be constructible both with and without arguments, you write both constructors explicitly, the
+way the worked example does -- nothing is provided for you once you've written even one.

@@ -1,0 +1,63 @@
+---
+title: "Fix: Missing Default Constructor"
+lesson: "04-classes-and-objects/03-constructors"
+order: 3
+difficulty: "medium"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class Fraction {
+  public:
+      int numerator;
+      int denominator;
+
+      Fraction(int n, int d) : numerator(n), denominator(d) {
+      }
+  };
+
+  int main() {
+      Fraction zero;
+      std::cout << "numerator = " << zero.numerator << std::endl;
+      std::cout << "denominator = " << zero.denominator << std::endl;
+      return 0;
+  }
+tests:
+  - name: "default-constructed fraction"
+    stdin: ""
+    expectedOutput: |
+      numerator = 0
+      denominator = 1
+    hidden: false
+hints:
+  - "Submit as-is and read the error -- 'no matching function for call to Fraction::Fraction()' names the exact problem: main asks for a no-argument constructor, and only the (int, int) one exists."
+  - "Writing the (int, int) constructor removed the free, compiler-generated default constructor -- add your own Fraction() explicitly, initializing numerator to 0 and denominator to 1."
+solution: |
+  #include <iostream>
+
+  class Fraction {
+  public:
+      int numerator;
+      int denominator;
+
+      Fraction() : numerator(0), denominator(1) {
+      }
+
+      Fraction(int n, int d) : numerator(n), denominator(d) {
+      }
+  };
+
+  int main() {
+      Fraction zero;
+      std::cout << "numerator = " << zero.numerator << std::endl;
+      std::cout << "denominator = " << zero.denominator << std::endl;
+      return 0;
+  }
+---
+
+`main` creates a `Fraction` with no arguments -- and this class doesn't compile, because it only defines a
+two-argument constructor. Submit it as-is and read the error before fixing anything.
+
+This is the "quiet trap" from the lesson made concrete: writing the `(int, int)` constructor took away the free
+default constructor C++ would otherwise have generated. Add a `Fraction()` constructor of your own, initializing
+`numerator` to `0` and `denominator` to `1`, so both ways of creating a `Fraction` work.

@@ -65,8 +65,8 @@ export default function ExerciseWorkspace({ slug, starter, tests, hints, solutio
   const canShowSolution = showSolution || (report?.allPassed ?? false);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <div className="flex flex-col gap-2">
+    <div className="grid gap-4 lg:grid-cols-2 min-w-0">
+      <div className="flex flex-col gap-2 min-w-0">
         <div className="flex items-center justify-between">
           <span className="text-xs uppercase tracking-wide text-slate-400">Your solution</span>
           <div className="flex gap-2">
@@ -112,7 +112,7 @@ export default function ExerciseWorkspace({ slug, starter, tests, hints, solutio
         )}
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 min-w-0">
         <div>
           <h3 className="text-sm font-semibold text-slate-200 mb-2">Test results</h3>
           {!report && <p className="text-xs text-slate-500">Submit your solution to run it against all test cases.</p>}

@@ -1,0 +1,101 @@
+---
+title: "Encapsulation, const Correctness & static Members"
+module: "04-classes-and-objects"
+order: 5
+summary: "Hiding data behind a controlled interface, promising a member function won't modify the object, and data shared by every instance instead of owned by any one of them."
+example:
+  language: cpp
+  stdin: ""
+  code: |
+    #include <iostream>
+
+    class BankAccount {
+    public:
+        BankAccount(double startingBalance) : balance(startingBalance) {
+            accountCount++;
+        }
+
+        double getBalance() const {
+            return balance;
+        }
+
+        void deposit(double amount) {
+            balance += amount;
+        }
+
+        static int accountCount;
+
+    private:
+        double balance;
+    };
+
+    int BankAccount::accountCount = 0;
+
+    int main() {
+        BankAccount a(100.0);
+        BankAccount b(50.0);
+
+        a.deposit(25.0);
+
+        std::cout << "a balance = " << a.getBalance() << std::endl;
+        std::cout << "accounts created = " << BankAccount::accountCount << std::endl;
+        return 0;
+    }
+---
+
+## Why this matters
+
+Lesson 2 introduced `private` mechanically -- accessible only from inside the class -- without using it for
+anything yet. This lesson is where it actually pays off, alongside two more tools that round out what a real class
+looks like: `const` member functions, and `static` members shared by every object of a class instead of owned by
+any single one.
+
+## Encapsulation: hide the data, expose a controlled interface
+
+`BankAccount::balance` is `private` -- `main` cannot write `a.balance = -1000000;` even if it wanted to; that line
+would be the exact "private within this context" error from Lesson 2. The only ways to affect `balance` from
+outside the class are through `deposit` and (to read it) `getBalance` -- functions the class itself controls. This
+is **encapsulation**: not hiding data out of secrecy, but so the class can guarantee its own invariants. A real
+`deposit` could reject a negative amount; direct field access could never be stopped from setting `balance` to
+anything at all. The private/public split is what makes a class able to enforce its own rules, rather than merely
+suggesting them.
+
+## `const` member functions: promising not to modify the object
+
+```cpp
+double getBalance() const {
+    return balance;
+}
+```
+
+The `const` *after* the parameter list (easy to mistake for something else -- it's not related to a `const`
+return type or parameter here) promises that calling `getBalance` never modifies the object it's called on. Try
+adding `balance = 0;` inside `getBalance` and you'll get a real compile error, `assignment of member ... in
+read-only object` -- the exact same enforcement mechanism as the `const int *` parameters from Module 2, just
+applied to `this` instead of an explicit pointer parameter. This is the same const-correctness idea from that
+lesson, now applied to methods: mark every member function that only reads the object's state as `const`, the same
+way you'd mark a pointer parameter `const` for only reading through it.
+
+This isn't just documentation -- it's checked at call sites too. A function that receives a `const BankAccount&`
+(a const reference to an account, promising not to modify it) can only call `getBalance`, never `deposit`, on that
+reference -- the compiler enforces the same promise from the other direction.
+
+## `static` member variables: one shared copy, not one per object
+
+```cpp
+static int accountCount;
+...
+int BankAccount::accountCount = 0;
+```
+
+An ordinary member variable like `balance` exists once *per object* -- `a` and `b` each have their own. A `static`
+member variable exists exactly **once**, shared by every object of the class (and accessible even with no object
+at all, via `BankAccount::accountCount`, as the worked example's last line does). The worked example uses this to
+count how many `BankAccount`s have ever been constructed -- every constructor call increments the same shared
+counter, regardless of which object is being built.
+
+The syntax has a real trap worth knowing about explicitly: `static int accountCount;` *inside* the class only
+**declares** it -- exactly like a function declaration without a body. It needs exactly one **definition**
+elsewhere, at file scope: `int BankAccount::accountCount = 0;`. Forget that line and you'll get a linker error,
+`undefined reference to 'BankAccount::accountCount'` -- the same category of error as Module 3's undefined-reference
+lesson, for the same underlying reason: a declaration was never matched with a definition.

@@ -1,0 +1,156 @@
+---
+title: "From C to C++: What's New"
+module: "04-classes-and-objects"
+order: 1
+summary: "C++ is (almost) a superset of everything you already know -- this lesson is the handful of new tools it adds before classes themselves even come up."
+example:
+  language: cpp
+  stdin: ""
+  code: |
+    #include <iostream>
+
+    void increment(int &value) {
+        value = value + 1;
+    }
+
+    int add(int a, int b) {
+        return a + b;
+    }
+
+    double add(double a, double b) {
+        return a + b;
+    }
+
+    int main() {
+        int x = 5;
+        increment(x);
+        std::cout << "x = " << x << std::endl;
+
+        bool is_positive = (x > 0);
+        std::cout << "is_positive = " << is_positive << std::endl;
+
+        std::cout << "add(2, 3) = " << add(2, 3) << std::endl;
+        std::cout << "add(2.5, 3.5) = " << add(2.5, 3.5) << std::endl;
+
+        return 0;
+    }
+---
+
+## Why this matters
+
+Everything in the first three modules -- variables, pointers, arrays, functions, `malloc`/`free`, the whole mental
+model -- is still exactly true in C++. C++ started as "C with classes," and it's still close enough to a superset
+that almost nothing you've learned gets thrown away. This lesson covers the handful of things that genuinely are
+new before classes (next lesson) enter the picture at all: references, a real `bool`, `<iostream>` for input and
+output, and function overloading.
+
+## References: a second way to let a function modify the caller's variable
+
+```c
+// The Module 2 way, with a pointer:
+void increment_ptr(int *value) {
+    *value = *value + 1;
+}
+increment_ptr(&x);
+```
+
+```cpp
+// The C++ way, with a reference:
+void increment(int &value) {
+    value = value + 1;
+}
+increment(x);
+```
+
+Both do exactly the same thing -- but notice the reference version never dereferences anything, and the call site
+never takes an address. A **reference** (`int &value`) is an alias for an existing variable, not a new box holding
+an address the way a pointer is. Inside `increment`, `value` isn't "a pointer you have to dereference to reach
+`x`" -- it behaves as if it *were* `x`, directly, for as long as the function runs.
+
+References come with restrictions pointers don't, and those restrictions are exactly what make them safer for this
+job:
+
+- A reference **must** be initialized the moment it's declared -- there's no such thing as an uninitialized
+  reference the way `int *p;` leaves `p` pointing nowhere valid.
+- A reference can **never be reseated** to refer to something else after that -- a pointer can be reassigned
+  (`p = &y;`); a reference is locked to the same variable for its entire life.
+- There's no "null reference" -- every reference is guaranteed to refer to something, unlike a pointer, which can
+  be `NULL`.
+
+Because of those guarantees, a reference parameter can't accidentally be an invalid address the way a pointer
+parameter could -- there's simply no way to construct an invalid one. You'll still use pointers throughout this
+course (particularly whenever "might not point to anything" is a real possibility you need to represent), but for
+"let this function modify a variable I'm handing it," prefer a reference from here on -- it's the idiomatic C++
+choice.
+
+## `bool` is a real, built-in type
+
+Module 1 mentioned that C treats any nonzero `int` as true and relies on `<stdbool.h>` to fake a `bool` on top of
+that. C++ has no such history to work around: `bool` is a genuine built-in type, with `true` and `false` as
+keywords, not macros standing in for `1` and `0`. You'll use it constantly from here on for anything that's
+conceptually yes/no, the way `is_positive` is in the worked example -- prefer it over a plain `int` whenever a
+value's whole meaning is true-or-false.
+
+## `<iostream>`: C++'s usual input/output
+
+`printf` and `scanf` still work perfectly in C++ -- nothing breaks them. But idiomatic C++ generally reaches for
+`<iostream>` instead:
+
+```cpp
+std::cout << "x = " << x << std::endl;   // output
+std::cin >> x;                            // input
+```
+
+`std::cout` ("character output") is written to using `<<`, chained as many times as you like in one statement --
+each `<<` sends the next piece to the stream, whatever its type, without a format specifier telling it what type to
+expect the way `%d` or `%f` did for `printf`. `std::endl` ends the line (similar to `"\n"`, plus it forces any
+buffered output to actually be written out immediately). `std::cin` ("character input") is the mirror image, read
+from with `>>` instead of written to with `<<`. The `std::` prefix names the **standard namespace** everything
+from the standard library lives in -- you'll see it in front of nearly everything from here on; this course writes
+it out explicitly everywhere rather than importing it wholesale, which is the more careful habit in real code.
+
+From this module onward, this course's worked examples and exercises use `<iostream>` rather than `<stdio.h>` --
+you'll be writing C++, and this is how idiomatic C++ looks.
+
+## Formatting numbers with `<<`: `std::fixed` and `std::setprecision`
+
+`printf`'s `%.2f` had the decimal-place count built right into the format string. `std::cout` needs a small
+extra tool for the same job, from `<iomanip>`:
+
+```cpp
+#include <iomanip>
+...
+std::cout << std::fixed << std::setprecision(2) << 3.14159 << std::endl;   // prints 3.14
+```
+
+Read this as configuring the stream, not as printing a value: `std::fixed` switches `cout` into always showing a
+fixed number of decimal places (rather than switching to scientific notation for very large or small numbers), and
+`std::setprecision(2)` sets that count to `2`. Both are **sticky** -- once sent to `cout`, they apply to every
+`double` printed afterward in the same program, not just the next one, until changed again.
+
+## Function overloading: the same name, different parameter types
+
+The worked example defines `add` **twice** -- once for two `int`s, once for two `double`s -- and both definitions
+coexist. This would be a flat "redefinition" compile error in C (Module 3 covered exactly that error), but C++
+allows it, provided the parameter *types* differ: the compiler picks whichever `add` matches the actual argument
+types at each call site, at compile time. `add(2, 3)` calls the `int` version; `add(2.5, 3.5)` calls the `double`
+version -- decided once, when the code is compiled, not at runtime. This is called **overloading**, and you'll use
+it constantly once classes are in the picture, particularly for constructors (next lesson).
+
+## `std::string`: real strings, without the null-terminator bookkeeping
+
+Module 2 covered C-strings in real depth specifically because the bookkeeping -- buffer sizes, the null terminator,
+`strcpy`/`strcat` never checking bounds -- is exactly the kind of manual memory discipline C requires everywhere.
+C++'s `<string>` header gives you `std::string`, a real type that manages its own memory automatically, grows as
+needed, and supports operators directly: `+` concatenates, `==` compares for equality (no `strcmp`, and no
+"nonzero means different" surprise), and `.length()` gives you the size without walking the string yourself the
+way `strlen` does. You'll use `std::string` from here on instead of `char` arrays for text -- the null-terminator
+model from Module 2 doesn't go away underneath, but you no longer manage it by hand.
+
+## One last small syntax change: `int main()`, not `int main(void)`
+
+Every program in this course so far has started with `int main(void)` -- and Module 1 explained why `(void)` was
+necessary in C: empty parentheses in C historically meant "unspecified parameters," not "no parameters." C++ fixed
+that inconsistency -- `int main()` with genuinely empty parentheses already means "takes no parameters," and
+`(void)` is no longer required (though it's still accepted, for compatibility). From this lesson on, this course
+writes `int main()`, matching ordinary C++ style.

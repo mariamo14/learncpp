@@ -6,7 +6,7 @@ deploys straight to GitHub Pages.
 
 ## What's here right now
 
-The engine is done and three modules are written end to end:
+The engine is done and four modules are written end to end:
 
 - **Module 1 -- C Foundations**: 7 lessons (your first program, variables & types, operators & expressions,
   logical operators & the ternary, control flow, bitwise operators, `printf`/`scanf`/overflow) -- deliberately
@@ -21,6 +21,11 @@ The engine is done and three modules are written end to end:
   compilation, header guards -- build systems & CMake including internal linkage via `static`, debugging with
   gdb/lldb & memory tools). 15 exercises, several with intentionally-broken starter code you fix by reading a real
   error rather than writing from scratch.
+- **Module 4 -- Classes & Objects**: 5 lessons -- this is where the course switches from C to C++. Bridges the gap
+  first (references vs. pointers, real `bool`, `<iostream>`, function overloading, `std::string`), then classes
+  and objects, constructors and the member initializer list, destructors and object lifetime (`new`/`delete` as
+  the constructor/destructor-aware alternative to `malloc`/`free`), and encapsulation/`const` member
+  functions/`static` members. 19 exercises.
 - Split-screen lesson view, CodeSignal-style exercise view, progressive hints, gated reference solutions.
 - Sidebar with per-lesson checkmarks and an overall progress bar.
 - Progress persists in `localStorage`, with export/import to a JSON file (there's no server, so this is the only

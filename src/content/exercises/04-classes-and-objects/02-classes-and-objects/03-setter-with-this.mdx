@@ -1,0 +1,79 @@
+---
+title: "Setter with this"
+lesson: "04-classes-and-objects/02-classes-and-objects"
+order: 3
+difficulty: "medium"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class Account {
+  public:
+      double balance;
+
+      void setBalance(double balance) {
+          // TODO: assign the parameter to this object's balance
+          // member. The parameter is deliberately named the same as
+          // the member -- use this-> to refer to the member itself.
+      }
+  };
+
+  int main() {
+      Account acc;
+      acc.balance = 0;
+
+      double amount;
+      std::cin >> amount;
+      acc.setBalance(amount);
+
+      std::cout << "Balance: " << acc.balance << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: 100"
+    stdin: "100"
+    expectedOutput: "Balance: 100"
+    hidden: false
+  - name: "zero"
+    stdin: "0"
+    expectedOutput: "Balance: 0"
+    hidden: true
+  - name: "negative"
+    stdin: "-50"
+    expectedOutput: "Balance: -50"
+    hidden: true
+hints:
+  - "Writing balance = balance; here compiles, but does nothing useful -- with no this->, both sides refer to the parameter, so it just assigns the parameter to itself, and the object's actual balance member is never touched."
+  - "this->balance = balance; -- the left side is the member (explicitly, via this), the right side is the parameter."
+solution: |
+  #include <iostream>
+
+  class Account {
+  public:
+      double balance;
+
+      void setBalance(double balance) {
+          this->balance = balance;
+      }
+  };
+
+  int main() {
+      Account acc;
+      acc.balance = 0;
+
+      double amount;
+      std::cin >> amount;
+      acc.setBalance(amount);
+
+      std::cout << "Balance: " << acc.balance << std::endl;
+      return 0;
+  }
+---
+
+`setBalance`'s parameter is named `balance` -- the same as the member it's supposed to update. This is deliberate:
+it's the exact situation from the lesson where `this->` stops being optional. Write `this->balance` to mean the
+member, plain `balance` to mean the parameter.
+
+If your solution passes the `0` case but fails the others, that's the tell: `acc.balance` starts at `0` in `main`,
+so a `setBalance` that accidentally does nothing (via unqualified `balance = balance;`, a no-op self-assignment)
+would still happen to print the right answer for input `0`, while silently failing for everything else.

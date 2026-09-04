@@ -1,0 +1,74 @@
+---
+title: "Private Balance with Getter"
+lesson: "04-classes-and-objects/05-encapsulation-const-and-static"
+order: 1
+difficulty: "easy"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class BankAccount {
+  public:
+      BankAccount(double startingBalance) : balance(startingBalance) {
+      }
+
+      // TODO: add a const member function getBalance() that returns
+      // balance.
+
+  private:
+      double balance;
+  };
+
+  int main() {
+      double start;
+      std::cin >> start;
+      BankAccount acc(start);
+      std::cout << "Balance: " << acc.getBalance() << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: 100"
+    stdin: "100"
+    expectedOutput: "Balance: 100"
+    hidden: false
+  - name: "zero"
+    stdin: "0"
+    expectedOutput: "Balance: 0"
+    hidden: true
+  - name: "negative"
+    stdin: "-50"
+    expectedOutput: "Balance: -50"
+    hidden: true
+hints:
+  - "balance is private, so getBalance has to be a member function of BankAccount itself -- main can't reach balance directly."
+  - "double getBalance() const {\n    return balance;\n}"
+solution: |
+  #include <iostream>
+
+  class BankAccount {
+  public:
+      BankAccount(double startingBalance) : balance(startingBalance) {
+      }
+
+      double getBalance() const {
+          return balance;
+      }
+
+  private:
+      double balance;
+  };
+
+  int main() {
+      double start;
+      std::cin >> start;
+      BankAccount acc(start);
+      std::cout << "Balance: " << acc.getBalance() << std::endl;
+      return 0;
+  }
+---
+
+`balance` is `private` -- `main` has no way to read it directly. Add a `const` member function `getBalance` that
+returns it, giving `main` a controlled, read-only way to ask an account what it holds.
+
+Mark it `const`: it only reads `balance`, never changes it, so it should be usable even on an account you only
+have const (read-only) access to.

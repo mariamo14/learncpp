@@ -1,0 +1,73 @@
+---
+title: "Reverse Order"
+lesson: "04-classes-and-objects/04-destructors-and-object-lifetime"
+order: 2
+difficulty: "medium"
+language: "cpp"
+starter: |
+  #include <iostream>
+  #include <string>
+
+  class Resource {
+  public:
+      std::string name;
+
+      Resource(std::string n) : name(n) {
+          std::cout << "Created: " << name << std::endl;
+      }
+
+      ~Resource() {
+          std::cout << "Destroyed: " << name << std::endl;
+      }
+  };
+
+  int main() {
+      // TODO: create three Resource objects, in this order, all in
+      // main's scope: "first", then "second", then "third". Don't
+      // print anything yourself -- the constructor and destructor
+      // already print everything needed. Just declare the three
+      // objects, in order.
+      return 0;
+  }
+tests:
+  - name: "reverse destruction order"
+    stdin: ""
+    expectedOutput: |
+      Created: first
+      Created: second
+      Created: third
+      Destroyed: third
+      Destroyed: second
+      Destroyed: first
+    hidden: false
+hints:
+  - "Just three ordinary declarations, one per name, in construction order -- Resource a(\"first\"); Resource b(\"second\"); Resource c(\"third\");. You don't write any destruction logic; C++ handles the order on its own when main ends."
+solution: |
+  #include <iostream>
+  #include <string>
+
+  class Resource {
+  public:
+      std::string name;
+
+      Resource(std::string n) : name(n) {
+          std::cout << "Created: " << name << std::endl;
+      }
+
+      ~Resource() {
+          std::cout << "Destroyed: " << name << std::endl;
+      }
+  };
+
+  int main() {
+      Resource a("first");
+      Resource b("second");
+      Resource c("third");
+      return 0;
+  }
+---
+
+Declare three `Resource` objects, in order, named `"first"`, `"second"`, and `"third"` -- and nothing else.
+You're not writing any destruction logic at all here; the expected output is entirely a consequence of the rule
+from the lesson: objects sharing a scope are destroyed in the exact reverse of their construction order. Declare
+them in the order given and let that rule do the rest.

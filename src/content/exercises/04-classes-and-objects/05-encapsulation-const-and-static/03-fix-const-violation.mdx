@@ -1,0 +1,87 @@
+---
+title: "Fix: const Violation"
+lesson: "04-classes-and-objects/05-encapsulation-const-and-static"
+order: 3
+difficulty: "hard"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class BankAccount {
+  public:
+      BankAccount(double startingBalance) : balance(startingBalance) {
+      }
+
+      double getBalance() const {
+          return balance;
+      }
+
+      void deposit(double amount) const {
+          balance += amount;
+      }
+
+  private:
+      double balance;
+  };
+
+  int main() {
+      double start, amount;
+      std::cin >> start >> amount;
+      BankAccount acc(start);
+      acc.deposit(amount);
+      std::cout << "Balance: " << acc.getBalance() << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: 100 + 50"
+    stdin: "100 50"
+    expectedOutput: "Balance: 150"
+    hidden: false
+  - name: "zero plus zero"
+    stdin: "0 0"
+    expectedOutput: "Balance: 0"
+    hidden: true
+  - name: "negative amount"
+    stdin: "10 -5"
+    expectedOutput: "Balance: 5"
+    hidden: true
+hints:
+  - "Submit as-is and read the error -- 'assignment of member ... in read-only object' is the exact error from the lesson, pointing right at balance += amount inside deposit."
+  - "deposit's entire job is to modify balance -- that's fundamentally incompatible with marking it const, the same 'know when not to use it' lesson as Module 2's Fix: Wrong const exercise. Remove const from deposit's declaration; nothing else needs to change."
+solution: |
+  #include <iostream>
+
+  class BankAccount {
+  public:
+      BankAccount(double startingBalance) : balance(startingBalance) {
+      }
+
+      double getBalance() const {
+          return balance;
+      }
+
+      void deposit(double amount) {
+          balance += amount;
+      }
+
+  private:
+      double balance;
+  };
+
+  int main() {
+      double start, amount;
+      std::cin >> start >> amount;
+      BankAccount acc(start);
+      acc.deposit(amount);
+      std::cout << "Balance: " << acc.getBalance() << std::endl;
+      return 0;
+  }
+---
+
+This doesn't compile. Submit it as-is and read the error before changing anything -- it's the exact `const`
+violation from the lesson, just triggered by a member function instead of a plain pointer.
+
+`deposit` is marked `const`, which promises it won't modify the object -- and then its whole job is modifying
+`balance`. Those two things can't both be true. The fix isn't in the arithmetic; it's removing `const` from
+`deposit`'s own declaration, the same "recognize when `const` is simply wrong for this function" lesson as Module
+2's pointer-focused version of this exact exercise.

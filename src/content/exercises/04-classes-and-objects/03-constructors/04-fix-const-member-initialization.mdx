@@ -1,0 +1,69 @@
+---
+title: "Fix: const Member Initialization"
+lesson: "04-classes-and-objects/03-constructors"
+order: 4
+difficulty: "hard"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class Trade {
+  public:
+      const int id;
+
+      Trade(int tradeId) {
+          id = tradeId;
+      }
+  };
+
+  int main() {
+      int tradeId;
+      std::cin >> tradeId;
+      Trade t(tradeId);
+      std::cout << "id = " << t.id << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: 42"
+    stdin: "42"
+    expectedOutput: "id = 42"
+    hidden: false
+  - name: "zero"
+    stdin: "0"
+    expectedOutput: "id = 0"
+    hidden: true
+  - name: "negative"
+    stdin: "-7"
+    expectedOutput: "id = -7"
+    hidden: true
+hints:
+  - "Submit as-is and read the errors -- 'uninitialized const member' and 'assignment of read-only member' both point at the same root cause from the lesson: a const member can never be assigned to, only initialized."
+  - "Move the assignment out of the constructor's body and into the member initializer list: Trade(int tradeId) : id(tradeId) {\n}"
+solution: |
+  #include <iostream>
+
+  class Trade {
+  public:
+      const int id;
+
+      Trade(int tradeId) : id(tradeId) {
+      }
+  };
+
+  int main() {
+      int tradeId;
+      std::cin >> tradeId;
+      Trade t(tradeId);
+      std::cout << "id = " << t.id << std::endl;
+      return 0;
+  }
+---
+
+`Trade::id` is `const` -- and this constructor tries to set it with an ordinary assignment in the body, exactly
+the pattern the lesson warned doesn't work for `const` (or reference) members. Submit as-is and read both errors
+before fixing anything.
+
+The fix isn't complicated once you see it: move `id`'s initialization out of the body entirely and into the member
+initializer list, `: id(tradeId)`, which is the only place a `const` member can legally be given its value. Once
+set there, `id` remains `42` (or whatever value it starts with) for the rest of that `Trade` object's life -- which
+is exactly the point of marking a field like an ID `const` in the first place.

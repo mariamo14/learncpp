@@ -1,0 +1,87 @@
+---
+title: "Rectangle Area and Perimeter"
+lesson: "04-classes-and-objects/02-classes-and-objects"
+order: 2
+difficulty: "medium"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class Rectangle {
+  public:
+      double width;
+      double height;
+
+      double area() {
+          // TODO
+          return 0.0;
+      }
+
+      double perimeter() {
+          // TODO
+          return 0.0;
+      }
+  };
+
+  int main() {
+      Rectangle r;
+      std::cin >> r.width >> r.height;
+      std::cout << "Area: " << r.area() << std::endl;
+      std::cout << "Perimeter: " << r.perimeter() << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: 4 x 5"
+    stdin: "4 5"
+    expectedOutput: |
+      Area: 20
+      Perimeter: 18
+    hidden: false
+  - name: "square"
+    stdin: "1 1"
+    expectedOutput: |
+      Area: 1
+      Perimeter: 4
+    hidden: true
+  - name: "fractional dimensions"
+    stdin: "2.5 4"
+    expectedOutput: |
+      Area: 10
+      Perimeter: 13
+    hidden: true
+hints:
+  - "Both member functions read width and height directly, the same way distanceFromOrigin read x and y -- no parameters needed."
+  - "double area() { return width * height; }\ndouble perimeter() { return 2 * (width + height); }"
+solution: |
+  #include <iostream>
+
+  class Rectangle {
+  public:
+      double width;
+      double height;
+
+      double area() {
+          return width * height;
+      }
+
+      double perimeter() {
+          return 2 * (width + height);
+      }
+  };
+
+  int main() {
+      Rectangle r;
+      std::cin >> r.width >> r.height;
+      std::cout << "Area: " << r.area() << std::endl;
+      std::cout << "Perimeter: " << r.perimeter() << std::endl;
+      return 0;
+  }
+---
+
+Complete `Rectangle`'s two member functions: `area` (width times height) and `perimeter` (twice the sum of width
+and height).
+
+This is deliberately similar to the last exercise, with two member functions on one class instead of one -- both
+read the same two member variables, computing something different from them. Notice `main` never touches `width`
+or `height` inside a formula itself; it just asks the object for `area()` and `perimeter()` and trusts the class to
+know how those are computed. That's the actual value of bundling data and behavior together, made concrete.

@@ -28,10 +28,10 @@ const exercises = (await getCollection("exercises"))
   <h1 class="text-2xl font-bold text-slate-100 mb-6">{lesson.data.title}</h1>
 
   <div class="grid gap-6 lg:grid-cols-2 items-start">
-    <article class="lesson-prose">
+    <article class="lesson-prose min-w-0">
       <Content />
     </article>
-    <div class="lg:sticky lg:top-6">
+    <div class="lg:sticky lg:top-6 min-w-0">
       <SnippetRunner
         client:load
         code={lesson.data.example.code}
