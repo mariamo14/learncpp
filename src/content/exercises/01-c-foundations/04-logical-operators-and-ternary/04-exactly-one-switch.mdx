@@ -1,0 +1,65 @@
+---
+title: "Exactly One Switch On"
+lesson: "01-c-foundations/04-logical-operators-and-ternary"
+order: 4
+difficulty: "hard"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int switch_a, switch_b;
+      scanf("%d %d", &switch_a, &switch_b);
+
+      // TODO: treat any nonzero value as "on" and 0 as "off". Print "On"
+      // if exactly one of the two switches is on (not both, not
+      // neither); otherwise print "Off". Build this from &&, ||, and !
+      // -- no if/else chain needed, just one expression.
+      return 0;
+  }
+tests:
+  - name: "sample: only a on"
+    stdin: "1 0"
+    expectedOutput: "On"
+    hidden: false
+  - name: "both off"
+    stdin: "0 0"
+    expectedOutput: "Off"
+    hidden: true
+  - name: "both on"
+    stdin: "1 1"
+    expectedOutput: "Off"
+    hidden: true
+  - name: "only b on, non-1 truthy value"
+    stdin: "0 -3"
+    expectedOutput: "On"
+    hidden: true
+  - name: "only a on, larger truthy value"
+    stdin: "5 0"
+    expectedOutput: "On"
+    hidden: true
+hints:
+  - "\"Exactly one\" means (a is on and b is off) OR (a is off and b is on) -- those two cases can't both happen, so it's a plain ||, not another &&."
+  - "!switch_b treats any nonzero switch_b as true, then flips it -- it works for any truthy value, not just the specific value 1, since C's ! (like &&/||) treats every nonzero int as true."
+  - "int result = (switch_a && !switch_b) || (!switch_a && switch_b); printf(result ? \"On\\n\" : \"Off\\n\");"
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int switch_a, switch_b;
+      scanf("%d %d", &switch_a, &switch_b);
+
+      int result = (switch_a && !switch_b) || (!switch_a && switch_b);
+      printf(result ? "On\n" : "Off\n");
+      return 0;
+  }
+---
+
+Two switches, each represented by an `int` where `0` means off and *any* nonzero value means on. Print `On` if
+**exactly one** of them is on -- both off, or both on, both print `Off`.
+
+This is worth building entirely out of `&&`, `||`, and `!`, without writing a single `if`: "exactly one of two
+things is true" is "(the first is true and the second isn't) or (the second is true and the first isn't)" --
+translate that sentence directly into `&&`/`||`/`!`, one piece at a time, rather than trying to guess the whole
+expression at once. This also uses the ternary operator from this lesson to pick the string to print, all in one
+`printf` call.

@@ -1,0 +1,79 @@
+---
+title: "Recursive Array Sum"
+lesson: "02-functions-arrays-pointers/07-recursion"
+order: 4
+difficulty: "hard"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int array_sum(const int *arr, int n) {
+      // TODO: return the sum of the first n elements of arr, computed
+      // recursively -- no loop. Base case: n == 0 returns 0.
+      // Recursive case: add arr[0] to the sum of everything after it
+      // (arr + 1 points one element further into the array, at n - 1
+      // remaining elements).
+      return 0;
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      int values[100];
+      for (int i = 0; i < n; i++) {
+          scanf("%d", &values[i]);
+      }
+      printf("Sum: %d\n", array_sum(values, n));
+      return 0;
+  }
+tests:
+  - name: "sample: 4 values"
+    stdin: "4\n1 2 3 4"
+    expectedOutput: "Sum: 10"
+    hidden: false
+  - name: "empty array"
+    stdin: "0"
+    expectedOutput: "Sum: 0"
+    hidden: true
+  - name: "single value"
+    stdin: "1\n5"
+    expectedOutput: "Sum: 5"
+    hidden: true
+  - name: "negative values"
+    stdin: "5\n-1 -2 -3 -4 -5"
+    expectedOutput: "Sum: -15"
+    hidden: true
+hints:
+  - "This is the same idea as digit_sum's n % 10 + digit_sum(n / 10) -- peel off one piece (arr[0]), and recurse on 'everything else' (the rest of the array)."
+  - "'The rest of the array' is arr + 1 (a pointer one element further in, from the arrays-and-pointer-arithmetic lesson) paired with n - 1 (one fewer element remaining)."
+  - "if (n == 0) { return 0; } return arr[0] + array_sum(arr + 1, n - 1);"
+solution: |
+  #include <stdio.h>
+
+  int array_sum(const int *arr, int n) {
+      if (n == 0) {
+          return 0;
+      }
+      return arr[0] + array_sum(arr + 1, n - 1);
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      int values[100];
+      for (int i = 0; i < n; i++) {
+          scanf("%d", &values[i]);
+      }
+      printf("Sum: %d\n", array_sum(values, n));
+      return 0;
+  }
+---
+
+Sum the first `n` elements of `arr` recursively -- the same problem as this module's very first "Array Sum"
+exercise, this time without a loop.
+
+The recursive step reuses two ideas from earlier in this module at once: `arr[0]` peels off the first element (an
+ordinary array index), and `arr + 1` -- pointer arithmetic -- produces a pointer to "the array starting one
+element later," which paired with `n - 1` describes exactly the remaining elements. `array_sum(arr + 1, n - 1)` is
+a completely ordinary recursive call on a smaller version of the same problem; it just happens that "smaller" here
+means "starting one element further into the same block of memory," not a smaller number passed by value.

@@ -8,11 +8,14 @@ deploys straight to GitHub Pages.
 
 The engine is done and three modules are written end to end:
 
-- **Module 1 -- C Foundations**: 5 lessons (your first program, variables & types, operators & expressions,
-  control flow, `printf`/`scanf`/overflow) -- deliberately split fine-grained, one new idea per lesson, after early
-  feedback that a denser first draft assumed too much and moved too fast. 14 auto-graded exercises.
-- **Module 2 -- Functions, Arrays & Pointers**: 4 lessons (pointer basics on their own before combining them with
-  anything else, functions & pointer out-parameters, arrays & pointer arithmetic, dynamic memory). 12 exercises.
+- **Module 1 -- C Foundations**: 7 lessons (your first program, variables & types, operators & expressions,
+  logical operators & the ternary, control flow, bitwise operators, `printf`/`scanf`/overflow) -- deliberately
+  split fine-grained, one new idea per lesson, after feedback that an early draft assumed too much and moved too
+  fast, then broadened for fuller topic coverage (bitwise/logical operators, `switch`, `do`/`while`) after feedback
+  that it still skipped real exam-relevant material. 23 auto-graded exercises.
+- **Module 2 -- Functions, Arrays & Pointers**: 7 lessons (pointer basics on their own before combining them with
+  anything else, functions & pointer out-parameters, const-correctness, arrays & pointer arithmetic including 2D
+  arrays, C-strings, dynamic memory, recursion). 24 exercises.
 - **Module 3 -- Build Tooling & Debugging Literacy**: 3 lessons (the compilation pipeline & reading real
   compiler/linker errors, build systems & CMake, debugging with gdb/lldb & memory tools). 9 exercises, several with
   intentionally-broken starter code you fix by reading a real error rather than writing from scratch.

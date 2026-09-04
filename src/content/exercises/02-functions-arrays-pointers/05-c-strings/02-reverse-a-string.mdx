@@ -1,0 +1,70 @@
+---
+title: "Reverse a String"
+lesson: "02-functions-arrays-pointers/05-c-strings"
+order: 2
+difficulty: "medium"
+language: "c"
+starter: |
+  #include <stdio.h>
+  #include <string.h>
+
+  int main(void) {
+      char word[100];
+      scanf("%99s", word);
+
+      // TODO: reverse word in place -- same two-ended swap technique
+      // as reversing an int array, but stop at the null terminator
+      // instead of a fixed length. strlen() will tell you where that is.
+
+      printf("%s\n", word);
+      return 0;
+  }
+tests:
+  - name: "sample: hello"
+    stdin: "hello"
+    expectedOutput: "olleh"
+    hidden: false
+  - name: "single character"
+    stdin: "a"
+    expectedOutput: "a"
+    hidden: true
+  - name: "palindrome"
+    stdin: "racecar"
+    expectedOutput: "racecar"
+    hidden: true
+  - name: "even length"
+    stdin: "code"
+    expectedOutput: "edoc"
+    hidden: true
+hints:
+  - "int len = strlen(word); gives you the string's length without its terminator -- use that the same way you'd use an array's explicit length in Module 2's int-array reverse exercise."
+  - "int left = 0, right = len - 1; while (left < right) { char temp = word[left]; word[left] = word[right]; word[right] = temp; left++; right--; }"
+solution: |
+  #include <stdio.h>
+  #include <string.h>
+
+  int main(void) {
+      char word[100];
+      scanf("%99s", word);
+
+      int len = strlen(word);
+      int left = 0, right = len - 1;
+      while (left < right) {
+          char temp = word[left];
+          word[left] = word[right];
+          word[right] = temp;
+          left++;
+          right--;
+      }
+
+      printf("%s\n", word);
+      return 0;
+  }
+---
+
+Reverse `word` in place, character by character -- the exact same converging two-pointer/two-index technique used
+to reverse an int array earlier in this module, adapted to a string: find the length with `strlen`, swap the first
+and last characters, then the second and second-to-last, and so on until the two indices meet or cross.
+
+The null terminator itself never needs to move -- it's already sitting in the right place, one past the last real
+character, before and after the reversal. Only the `len` characters *before* it get swapped.

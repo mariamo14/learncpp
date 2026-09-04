@@ -1,0 +1,61 @@
+---
+title: "Distance Between Two Points"
+lesson: "02-functions-arrays-pointers/03-const-correctness"
+order: 2
+difficulty: "medium"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int distance(const int *a, const int *b) {
+      // TODO: return the absolute difference between *a and *b.
+      // Both parameters are const because this function only ever
+      // reads through them.
+      return 0;
+  }
+
+  int main(void) {
+      int x, y;
+      scanf("%d %d", &x, &y);
+      printf("Distance: %d\n", distance(&x, &y));
+      return 0;
+  }
+tests:
+  - name: "sample: 10 and 3"
+    stdin: "10 3"
+    expectedOutput: "Distance: 7"
+    hidden: false
+  - name: "arguments swapped -- same distance"
+    stdin: "3 10"
+    expectedOutput: "Distance: 7"
+    hidden: true
+  - name: "crossing zero"
+    stdin: "-5 5"
+    expectedOutput: "Distance: 10"
+    hidden: true
+  - name: "equal values"
+    stdin: "4 4"
+    expectedOutput: "Distance: 0"
+    hidden: true
+solution: |
+  #include <stdio.h>
+
+  int distance(const int *a, const int *b) {
+      return (*a > *b) ? (*a - *b) : (*b - *a);
+  }
+
+  int main(void) {
+      int x, y;
+      scanf("%d %d", &x, &y);
+      printf("Distance: %d\n", distance(&x, &y));
+      return 0;
+  }
+---
+
+`distance` takes two `const int *` parameters and returns how far apart the two values are -- always
+nonnegative, regardless of which one is larger.
+
+The ternary operator from Module 1 fits this exactly: `(*a > *b) ? (*a - *b) : (*b - *a)` subtracts the smaller
+from the larger either way, so the result can never come out negative. Both parameters are `const` for the same
+reason as the previous exercise -- this function reads two values and produces a new one; it never needs to write
+through either pointer.

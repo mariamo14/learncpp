@@ -1,0 +1,89 @@
+---
+title: "Logical Operators & the Ternary Operator"
+module: "01-c-foundations"
+order: 4
+summary: "How C combines conditions with &&, ||, and !, why the order you write them in can matter, and a compact one-line form of if/else."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+
+    int main(void) {
+        int a = 10, b = 0;
+
+        if (b != 0 && a / b > 1) {
+            printf("quotient is greater than 1\n");
+        } else {
+            printf("skipped the division safely\n");
+        }
+
+        int max = (a > b) ? a : b;
+        printf("max = %d\n", max);
+        return 0;
+    }
+---
+
+## Why this matters
+
+You've written conditions like `a > 0` and `x == 5`. Real conditions are often built from *several* of these
+combined -- "is this value in range AND did the user say yes" -- and C gives you three operators for exactly that:
+`&&` (and), `||` (or), `!` (not). This lesson covers those, plus a genuinely surprising and useful property of how
+C evaluates them, and a compact alternative to short `if`/`else` blocks.
+
+## `&&`, `||`, and `!`: combining conditions
+
+- `a && b` is true only if **both** `a` and `b` are true.
+- `a || b` is true if **at least one** of `a` or `b` is true.
+- `!a` flips a condition: true becomes false, false becomes true.
+
+There's a detail worth being precise about, because it matters throughout this course: C has no separate "boolean"
+type built into the original language the way Python or JavaScript do. A condition's result -- and what `&&`,
+`||`, and `!` actually operate on -- is just an `int`: `0` means false, and *any nonzero value* means true, not
+just `1`. `if (n)` is a completely ordinary and common way to write "if `n` is nonzero." (C99 added `<stdbool.h>`,
+giving you `bool`, `true`, and `false` as more readable names for this exact same `int`-based mechanism -- you'll
+see it used in later lessons, but the underlying rule doesn't change.)
+
+## Short-circuit evaluation: the right side isn't always evaluated at all
+
+This is the single most important -- and most useful -- fact in this lesson. In `a && b`, C evaluates `a` first,
+and if `a` is false, it **never evaluates `b` at all**, because the answer is already known to be false no matter
+what `b` is. The mirror image holds for `||`: if the left side is true, the right side is skipped, since the
+answer is already known to be true.
+
+This isn't just a performance detail -- it's a safety tool. Look at the worked example's condition:
+`b != 0 && a / b > 1`. If `b` is `0`, `b != 0` is false, `&&` short-circuits, and `a / b` -- which would crash the
+program with a division by zero -- **never runs**. Run the example as-is (`b = 0`) and see it print the "skipped
+safely" branch without crashing; then imagine what would happen if the two conditions were written in the opposite
+order.
+
+**Order matters.** `a / b > 1 && b != 0` looks logically equivalent -- "and" doesn't care about order in plain
+math -- but it is not equivalent here: this version evaluates `a / b` *first*, before ever checking whether `b` is
+zero, and crashes exactly when `b` is `0`. Whenever one condition's safety depends on another being true first
+(dividing safely, or later in this course, checking an array index is in bounds before using it), put the
+*guarding* condition on the left of `&&`.
+
+## The ternary operator: a compact if/else that produces a value
+
+```c
+int max = (a > b) ? a : b;
+```
+
+Read `condition ? value_if_true : value_if_false` as a single expression that evaluates to one of two values,
+depending on the condition -- not a statement that runs one of two blocks. It's most useful precisely when you want
+to *assign* one of two values based on a condition, which would otherwise take a multi-line `if`/`else`:
+
+```c
+int max;
+if (a > b) {
+    max = a;
+} else {
+    max = b;
+}
+```
+
+Both do exactly the same thing; the ternary form is shorter when the two branches are simple values. It's not a
+replacement for `if`/`else` in general -- when a branch needs to *do* several things (not just produce one value),
+reach for a regular `if`/`else` instead. Ternary expressions can also be chained (`a ? b : (c ? d : e)`), which
+you'll practice in the exercises below -- when you do, use parentheses generously, since precedence here is easy to
+misjudge by eye.

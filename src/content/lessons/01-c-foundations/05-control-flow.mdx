@@ -1,0 +1,159 @@
+---
+title: "Control Flow"
+module: "01-c-foundations"
+order: 5
+summary: "How if/else, while, and for actually change which instructions the CPU runs next -- and the classic mistakes each one invites."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+
+    int main(void) {
+        int n = 20;
+        int a = 0, b = 1;
+
+        printf("Fibonacci up to %d:\n", n);
+        while (a <= n) {
+            printf("%d ", a);
+            int next = a + b;
+            a = b;
+            b = next;
+        }
+        printf("\n");
+        return 0;
+    }
+---
+
+## Why this matters
+
+A program with no control flow is just a calculator: it runs top to bottom once and stops. `if`, `while`, and `for`
+are what let a program make decisions and repeat work -- which means they're also where almost all *logic* bugs
+live, as opposed to the type-related bugs from the last two lessons. The good news: none of this is conceptually
+new if you've used `if`/`while`/`for` in another language before -- C's versions do the same jobs. What's worth
+paying attention to instead is the small syntactic differences (parentheses required around conditions, curly
+braces instead of indentation marking a block) and reading control flow precisely enough to answer, for any line,
+"how many times does this run, and under what condition?"
+
+## `if` / `else` chains run top to bottom, and stop at the first match
+
+```c
+if (score >= 90) grade = 'A';
+else if (score >= 80) grade = 'B';
+else if (score >= 70) grade = 'C';
+else grade = 'F';
+```
+
+Order matters here: if you wrote `score >= 70` before `score >= 90`, every score of 90+ would incorrectly get a
+`'C'`, because the first true branch wins and the rest are skipped entirely -- they aren't even evaluated. This is
+different from a series of independent `if` statements (no `else`), where *every* condition gets checked regardless
+of whether an earlier one matched.
+
+## `while` runs zero or more times; the condition is checked *before* every iteration
+
+The worked example builds a Fibonacci sequence with a `while` loop. Trace it by hand: `a` starts at 0, and the loop
+body runs as long as `a <= n`. Each iteration prints the current value, then advances `a` and `b` together using a
+temporary variable (`next`) -- this matters because you cannot write `a = b; b = a + b;` and get the same result,
+since by the second statement `a` has already been overwritten.
+
+If the condition is false the very first time it's checked, the body never runs at all.
+
+## `do`/`while`: the one loop that always runs at least once
+
+```c
+int n;
+do {
+    printf("Enter a positive number: ");
+    scanf("%d", &n);
+} while (n <= 0);
+```
+
+This is a `while` loop with the check moved to the *end*: the body runs once unconditionally, and only then does C
+check whether to run it again. It exists for exactly one recurring situation -- when you need something to happen
+before you have any value to check a condition against, like reading input for the first time, as above. `n`
+doesn't exist to check yet on the first pass, so an ordinary `while` (condition-first) can't express "run once,
+then keep going while this holds" as directly. Outside that situation, prefer a plain `while` -- it's more common
+and, since the condition is right at the top, usually easier for a reader to see at a glance.
+
+## `for` is a `while` loop with its bookkeeping collected in one place
+
+```c
+for (int i = 0; i < 5; i++) {
+    printf("%d\n", i);
+}
+```
+
+is exactly equivalent to
+
+```c
+int i = 0;
+while (i < 5) {
+    printf("%d\n", i);
+    i++;
+}
+```
+
+`for` doesn't add new power -- it just puts the initialization, condition, and increment next to each other so a
+reader doesn't have to hunt for where the loop variable changes. Use `for` when you know roughly how many
+iterations you want (counting up to a bound); use `while` when the stopping condition is about *state* rather than
+a counter (as in the Fibonacci example, which stops based on the value of `a`, not an iteration count).
+
+## `switch`: many exact-match branches, without repeating the variable
+
+```c
+switch (grade) {
+    case 'A':
+        printf("Excellent\n");
+        break;
+    case 'B':
+        printf("Good\n");
+        break;
+    case 'C':
+        printf("Passing\n");
+        break;
+    default:
+        printf("Needs improvement\n");
+}
+```
+
+`switch` compares one value (`grade`) against a list of exact constants, jumping straight to whichever `case`
+matches -- `default` catches anything that matched none of them (and is optional, but leaving it out means silently
+doing nothing for unhandled values, which is easy to regret later). This looks like it does the same job as an
+`if`/`else if` chain of `grade == 'A'`, `grade == 'B'`, and so on -- and for exact-value matches like this, it
+does. The two aren't interchangeable in general, though: `switch` can only test *equality* against constants known
+at compile time, never a range (`score >= 90`) or any other kind of condition -- for those, you still need
+`if`/`else if`.
+
+**The `break` at the end of each case is not decoration -- leave it out and execution "falls through" into the
+next case**, running its code too, regardless of whether it matched. This is real, standard C behavior, not a bug
+in the example above -- occasionally used on purpose (multiple case labels sharing one block of code, by stacking
+them with no code in between), but almost always a mistake when it happens by accident. Get in the habit of typing
+`break;` as part of writing each `case`, not as an afterthought.
+
+## `break` and `continue`: leaving a loop, or just the current iteration, early
+
+Two keywords let you deviate from a loop's normal condition-checking flow:
+
+- `break;` exits the loop immediately -- the loop ends right there, as if its condition had just become false.
+- `continue;` skips the *rest of the current iteration* only, jumping straight to the next condition check (for a
+  `while`) or the increment step (for a `for`) -- the loop itself keeps going.
+
+```c
+for (int i = 0; i < 10; i++) {
+    if (i == 5) break;         // stop the loop entirely once i reaches 5
+    if (i % 2 == 0) continue;  // skip printing this particular i, but keep looping
+    printf("%d\n", i);
+}
+```
+
+This prints `1` and `3` only: even values are skipped via `continue` (the `printf` never runs for them, but the
+loop continues), and the loop stops entirely the instant `i` reaches `5`, before `printf` or the `continue` check
+ever run for that iteration. Both keywords apply to the *innermost* loop they're written inside, if there's more
+than one nested -- worth remembering once you start nesting loops.
+
+## Off-by-one is the single most common bug in this lesson
+
+`i < 5` runs for `i = 0, 1, 2, 3, 4` -- five iterations. `i <= 5` runs six times. Neither is "correct" in the
+abstract; the correct one is whichever matches what you're actually counting (indices of a 5-element array vs. the
+numbers 0 through 5 inclusive). When an exercise's test cases fail by exactly one iteration too many or too few,
+this is almost always why.

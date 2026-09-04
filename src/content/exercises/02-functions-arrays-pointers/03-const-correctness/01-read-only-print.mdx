@@ -1,0 +1,53 @@
+---
+title: "Read-Only Print"
+lesson: "02-functions-arrays-pointers/03-const-correctness"
+order: 1
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  void describe(const int *p) {
+      // TODO: print exactly: Value: <the int p points to>
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      describe(&n);
+      return 0;
+  }
+tests:
+  - name: "sample: 7"
+    stdin: "7"
+    expectedOutput: "Value: 7"
+    hidden: false
+  - name: "negative"
+    stdin: "-3"
+    expectedOutput: "Value: -3"
+    hidden: true
+  - name: "zero"
+    stdin: "0"
+    expectedOutput: "Value: 0"
+    hidden: true
+hints:
+  - "const only restricts writing through p -- reading *p to print it is completely unaffected."
+  - "printf(\"Value: %d\\n\", *p);"
+solution: |
+  #include <stdio.h>
+
+  void describe(const int *p) {
+      printf("Value: %d\n", *p);
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      describe(&n);
+      return 0;
+  }
+---
+
+Complete `describe` so it prints the value `p` points to, in the form `Value: 7`. `p`'s type is `const int *` --
+you're only ever reading through it here, so this should feel identical to dereferencing any other pointer; `const`
+just makes the "read-only" intent explicit and compiler-checked.

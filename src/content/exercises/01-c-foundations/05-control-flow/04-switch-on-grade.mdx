@@ -1,0 +1,69 @@
+---
+title: "Switch on Grade"
+lesson: "01-c-foundations/05-control-flow"
+order: 4
+difficulty: "medium"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      char grade;
+      scanf("%c", &grade);
+
+      // TODO: use a switch statement to print exactly one of:
+      //   Excellent   for 'A' or 'a'
+      //   Good        for 'B' or 'b'
+      //   Needs work  for anything else
+      return 0;
+  }
+tests:
+  - name: "sample: A"
+    stdin: "A"
+    expectedOutput: "Excellent"
+    hidden: false
+  - name: "lowercase b"
+    stdin: "b"
+    expectedOutput: "Good"
+    hidden: true
+  - name: "lowercase a"
+    stdin: "a"
+    expectedOutput: "Excellent"
+    hidden: true
+  - name: "falls to default"
+    stdin: "F"
+    expectedOutput: "Needs work"
+    hidden: true
+hints:
+  - "Two case labels can share one block of code by stacking them with nothing in between: case 'A': case 'a': printf(...); break; -- both labels fall into the same printf and break."
+  - "Don't forget break at the end of each group of cases, or execution falls through into the next one -- and don't forget default for everything else."
+  - "switch (grade) { case 'A': case 'a': printf(\"Excellent\\n\"); break; case 'B': case 'b': printf(\"Good\\n\"); break; default: printf(\"Needs work\\n\"); }"
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      char grade;
+      scanf("%c", &grade);
+
+      switch (grade) {
+          case 'A':
+          case 'a':
+              printf("Excellent\n");
+              break;
+          case 'B':
+          case 'b':
+              printf("Good\n");
+              break;
+          default:
+              printf("Needs work\n");
+      }
+      return 0;
+  }
+---
+
+Read a single character grade and print a category, using a `switch` statement -- not an `if`/`else if` chain.
+Both the uppercase and lowercase form of a letter should count: `'A'` and `'a'` both mean `Excellent`, `'B'` and
+`'b'` both mean `Good`, and everything else means `Needs work`.
+
+This is exactly the "stack case labels with no code between them" trick from the lesson, applied on purpose: two
+labels, one shared block, one `break` at the end of each group.

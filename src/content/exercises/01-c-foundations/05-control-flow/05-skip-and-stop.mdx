@@ -1,0 +1,89 @@
+---
+title: "Skip and Stop"
+lesson: "01-c-foundations/05-control-flow"
+order: 5
+difficulty: "hard"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+
+      // TODO: for i = 1 to n (inclusive):
+      //   - if i is a multiple of 3, skip it (continue) -- print nothing
+      //     for it, but keep looping
+      //   - if i is greater than 15, stop the loop entirely (break) --
+      //     don't print it or check any i after it
+      //   - otherwise, print i on its own line
+      return 0;
+  }
+tests:
+  - name: "sample: n=10"
+    stdin: "10"
+    expectedOutput: |
+      1
+      2
+      4
+      5
+      7
+      8
+      10
+    hidden: false
+  - name: "n=20 -- break kicks in before the end"
+    stdin: "20"
+    expectedOutput: |
+      1
+      2
+      4
+      5
+      7
+      8
+      10
+      11
+      13
+      14
+    hidden: true
+  - name: "n=12 -- break never triggers"
+    stdin: "12"
+    expectedOutput: |
+      1
+      2
+      4
+      5
+      7
+      8
+      10
+      11
+    hidden: true
+hints:
+  - "Check the multiple-of-3 condition first, with continue, before checking the greater-than-15 condition with break -- for every i this exercise actually reaches, the two conditions never overlap, so the order between them won't change your output, but it keeps the logic reading in the same order as the instructions."
+  - "for (int i = 1; i <= n; i++) { if (i % 3 == 0) continue; if (i > 15) break; printf(\"%d\\n\", i); }"
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+
+      for (int i = 1; i <= n; i++) {
+          if (i % 3 == 0) {
+              continue;
+          }
+          if (i > 15) {
+              break;
+          }
+          printf("%d\n", i);
+      }
+      return 0;
+  }
+---
+
+Loop from `1` to `n`, applying two different kinds of early exit: `continue` past any multiple of `3` (it's
+skipped, but the loop keeps going), and `break` out of the loop entirely the moment `i` exceeds `15` (nothing from
+that point on gets printed, or even checked).
+
+Trace the `n = 20` case by hand before running it: multiples of `3` up through `14` get skipped one at a time as
+the loop continues normally, but the moment `i` reaches `16`, the loop stops completely -- `17` through `20` are
+never printed, and never even reach the multiple-of-3 check, because `break` exits before either happens.

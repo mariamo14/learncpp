@@ -1,0 +1,68 @@
+---
+title: "Recursive Digit Sum"
+lesson: "02-functions-arrays-pointers/07-recursion"
+order: 2
+difficulty: "medium"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int digit_sum(int n) {
+      // TODO: return the sum of the decimal digits of n (n is
+      // non-negative), computed recursively -- no loop. Base case:
+      // n < 10 (a single digit) returns n itself.
+      return 0;
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      printf("Digit sum: %d\n", digit_sum(n));
+      return 0;
+  }
+tests:
+  - name: "sample: 493"
+    stdin: "493"
+    expectedOutput: "Digit sum: 16"
+    hidden: false
+  - name: "single digit"
+    stdin: "7"
+    expectedOutput: "Digit sum: 7"
+    hidden: true
+  - name: "zero"
+    stdin: "0"
+    expectedOutput: "Digit sum: 0"
+    hidden: true
+  - name: "larger number"
+    stdin: "10203"
+    expectedOutput: "Digit sum: 6"
+    hidden: true
+hints:
+  - "You solved this exact problem with a while loop back in Module 1 -- n % 10 is still the last digit, n / 10 is still everything before it. The recursive version just hands the 'everything before it' part to another call of digit_sum instead of looping."
+  - "if (n < 10) { return n; } return n % 10 + digit_sum(n / 10);"
+solution: |
+  #include <stdio.h>
+
+  int digit_sum(int n) {
+      if (n < 10) {
+          return n;
+      }
+      return n % 10 + digit_sum(n / 10);
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      printf("Digit sum: %d\n", digit_sum(n));
+      return 0;
+  }
+---
+
+Compute the sum of `n`'s decimal digits recursively -- the same problem as Module 1's iterative "Digit Sum"
+exercise, solved with a different technique.
+
+The base case is a single-digit number (`n < 10`), which is its own digit sum. Otherwise, split `n` into its last
+digit (`n % 10`) and everything before it (`n / 10`, exactly as before), and let a recursive call handle "everything
+before it" while you add the last digit on. Notice the base case here isn't "n reaches exactly 0" the way the
+`while` version's loop condition was -- it's "n is already a single digit," a subtly different (and for this
+problem, more natural) stopping point.

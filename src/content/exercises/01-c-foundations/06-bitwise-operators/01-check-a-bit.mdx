@@ -1,0 +1,62 @@
+---
+title: "Check a Bit"
+lesson: "01-c-foundations/06-bitwise-operators"
+order: 1
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      unsigned int n;
+      int position;
+      scanf("%u %d", &n, &position);
+
+      // TODO: print "Set" if bit `position` of n is 1, otherwise
+      // print "Clear". Bit 0 is the least significant (rightmost) bit.
+      return 0;
+  }
+tests:
+  - name: "sample: 5, bit 0"
+    stdin: "5 0"
+    expectedOutput: "Set"
+    hidden: false
+  - name: "5, bit 1"
+    stdin: "5 1"
+    expectedOutput: "Clear"
+    hidden: true
+  - name: "8, bit 3"
+    stdin: "8 3"
+    expectedOutput: "Set"
+    hidden: true
+  - name: "zero has no bits set"
+    stdin: "0 5"
+    expectedOutput: "Clear"
+    hidden: true
+hints:
+  - "5 in binary is 101 -- bit 0 (the rightmost) is 1, bit 1 is 0, bit 2 is 1. Build 1 << position to isolate just that bit, then AND it with n."
+  - "if ((n & (1 << position)) != 0) { printf(\"Set\\n\"); } else { printf(\"Clear\\n\"); }"
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      unsigned int n;
+      int position;
+      scanf("%u %d", &n, &position);
+
+      if ((n & (1 << position)) != 0) {
+          printf("Set\n");
+      } else {
+          printf("Clear\n");
+      }
+      return 0;
+  }
+---
+
+Read `n` and a bit `position` (0 = least significant bit), and print `Set` or `Clear` depending on that specific
+bit's value in `n`.
+
+This is the "check" third of the set/check/clear idiom from the lesson: build a mask with a single `1` bit at
+`position` using `1 << position`, `&` it with `n`, and compare the result against `0`. Don't forget the
+parentheses around `n & (1 << position)` before comparing with `!=` -- bitwise operators bind looser than
+comparisons, exactly as the lesson warns.

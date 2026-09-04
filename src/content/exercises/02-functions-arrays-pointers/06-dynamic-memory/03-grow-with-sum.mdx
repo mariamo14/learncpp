@@ -1,0 +1,102 @@
+---
+title: "Grow With Sum"
+lesson: "02-functions-arrays-pointers/06-dynamic-memory"
+order: 3
+difficulty: "hard"
+language: "c"
+starter: |
+  #include <stdio.h>
+  #include <stdlib.h>
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+
+      int *values = malloc(n * sizeof(int));
+      if (values == NULL) {
+          return 1;
+      }
+      int sum = 0;
+      for (int i = 0; i < n; i++) {
+          scanf("%d", &values[i]);
+          sum += values[i];
+      }
+
+      // TODO: grow `values` by one element with realloc (to hold n + 1
+      // ints total), set the new last element to `sum`, then print all
+      // n + 1 elements space-separated on one line. Free the final block
+      // before returning.
+      return 0;
+  }
+tests:
+  - name: "sample: 3 values"
+    stdin: "3\n1 2 3"
+    expectedOutput: "1 2 3 6"
+    hidden: false
+  - name: "single value"
+    stdin: "1\n5"
+    expectedOutput: "5 5"
+    hidden: true
+  - name: "mixed signs"
+    stdin: "2\n10 -3"
+    expectedOutput: "10 -3 7"
+    hidden: true
+hints:
+  - "int *grown = realloc(values, (n + 1) * sizeof(int)); -- always capture the result in a new variable and check it for NULL before touching `values` again."
+  - "realloc may return a different address than the one you passed in (it can move the block), so after a successful call you must reassign values = grown; -- don't keep using the old pointer."
+  - "The new last element is at index n (the array now has indices 0..n), since indices 0..n-1 still hold the original values."
+solution: |
+  #include <stdio.h>
+  #include <stdlib.h>
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+
+      int *values = malloc(n * sizeof(int));
+      if (values == NULL) {
+          return 1;
+      }
+      int sum = 0;
+      for (int i = 0; i < n; i++) {
+          scanf("%d", &values[i]);
+          sum += values[i];
+      }
+
+      int *grown = realloc(values, (n + 1) * sizeof(int));
+      if (grown == NULL) {
+          free(values);
+          return 1;
+      }
+      values = grown;
+      values[n] = sum;
+
+      for (int i = 0; i < n + 1; i++) {
+          printf("%d", values[i]);
+          if (i < n) {
+              printf(" ");
+          }
+      }
+      printf("\n");
+
+      free(values);
+      return 0;
+  }
+---
+
+Read `n` integers into a heap array and track their sum as you go (done for you). Then **grow the same allocation
+by one element** with `realloc`, store the sum in that new slot, and print all `n + 1` elements.
+
+`realloc(ptr, new_size)` tries to resize the block `ptr` points to, but it is not guaranteed to resize it *in
+place* -- if it needs to move the data to a bigger free region, it does that automatically and returns the new
+address, leaving the old pointer no longer valid to use. That's why the standard pattern is to `realloc` into a
+*different* variable, check that for `NULL`, and only then overwrite your original pointer:
+
+```c
+int *grown = realloc(values, new_size);
+if (grown == NULL) { /* original `values` is still valid and must still be freed */ }
+values = grown;
+```
+
+Assigning straight back into `values` (`values = realloc(values, new_size);`) is a common bug: if `realloc` fails
+and returns `NULL`, you've just overwritten your only pointer to the original block, and it leaks.

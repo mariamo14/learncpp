@@ -1,0 +1,71 @@
+---
+title: "Fibonacci"
+lesson: "02-functions-arrays-pointers/07-recursion"
+order: 3
+difficulty: "medium"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int fibonacci(int n) {
+      // TODO: return the nth Fibonacci number (0-indexed: fib(0) = 0,
+      // fib(1) = 1), computed recursively. This one needs two base
+      // cases and a recursive case with two recursive calls.
+      return 0;
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      printf("fib(%d) = %d\n", n, fibonacci(n));
+      return 0;
+  }
+tests:
+  - name: "sample: fib(10)"
+    stdin: "10"
+    expectedOutput: "fib(10) = 55"
+    hidden: false
+  - name: "first base case"
+    stdin: "0"
+    expectedOutput: "fib(0) = 0"
+    hidden: true
+  - name: "second base case"
+    stdin: "1"
+    expectedOutput: "fib(1) = 1"
+    hidden: true
+  - name: "small case"
+    stdin: "7"
+    expectedOutput: "fib(7) = 13"
+    hidden: true
+hints:
+  - "The Fibonacci sequence's own definition is already recursive: each number is the sum of the two before it. fib(0) = 0 and fib(1) = 1 are the two starting points that aren't defined in terms of anything smaller -- both need to be their own base case."
+  - "if (n == 0) { return 0; } if (n == 1) { return 1; } return fibonacci(n - 1) + fibonacci(n - 2);"
+solution: |
+  #include <stdio.h>
+
+  int fibonacci(int n) {
+      if (n == 0) {
+          return 0;
+      }
+      if (n == 1) {
+          return 1;
+      }
+      return fibonacci(n - 1) + fibonacci(n - 2);
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      printf("fib(%d) = %d\n", n, fibonacci(n));
+      return 0;
+  }
+---
+
+Compute the `n`th Fibonacci number recursively, where `fib(0) = 0`, `fib(1) = 1`, and every later term is the sum
+of the two before it.
+
+This needs two base cases instead of one, and -- new in this exercise -- a recursive case that calls itself
+**twice**, not once, each on a smaller input. Try tracing `fibonacci(4)` by hand, the way the lesson traced
+`factorial(5)`: you'll notice the call tree branches into two calls at every level, and that `fibonacci(2)` in
+particular ends up computed more than once along the way -- worth noticing now, even though fixing that
+inefficiency is out of scope for this exercise.

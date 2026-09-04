@@ -1,0 +1,63 @@
+---
+title: "Short-Circuit Safety"
+lesson: "01-c-foundations/04-logical-operators-and-ternary"
+order: 2
+difficulty: "medium"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int a, b;
+      scanf("%d %d", &a, &b);
+
+      // TODO: print "Yes" if (b is not zero) AND (a / b > 1), otherwise
+      // print "No". b may be 0 in some test cases -- your condition must
+      // never actually compute a / b when that happens. The order you
+      // write the two checks in matters here.
+      return 0;
+  }
+tests:
+  - name: "sample: quotient > 1"
+    stdin: "10 2"
+    expectedOutput: "Yes"
+    hidden: false
+  - name: "b is zero -- must not crash"
+    stdin: "10 0"
+    expectedOutput: "No"
+    hidden: true
+  - name: "quotient not > 1"
+    stdin: "1 2"
+    expectedOutput: "No"
+    hidden: true
+  - name: "negative a, b is zero -- must not crash"
+    stdin: "-10 0"
+    expectedOutput: "No"
+    hidden: true
+hints:
+  - "This is exactly the lesson's worked example, with a different threshold. Put b != 0 on the left of &&."
+  - "if (b != 0 && a / b > 1) { printf(\"Yes\\n\"); } else { printf(\"No\\n\"); }"
+  - "If you write a / b > 1 && b != 0 instead (checks swapped), it will crash on any test case where b is 0, because the division runs before b is ever checked."
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int a, b;
+      scanf("%d %d", &a, &b);
+
+      if (b != 0 && a / b > 1) {
+          printf("Yes\n");
+      } else {
+          printf("No\n");
+      }
+      return 0;
+  }
+---
+
+Print `Yes` if `b` is nonzero **and** `a / b > 1`; otherwise print `No`. Some of the test cases set `b` to `0` --
+your program has to handle that without crashing, which means the division must never actually execute in that
+case.
+
+This only works because of short-circuit evaluation, and only in one specific order: put `b != 0` on the left of
+`&&`. If C sees that's false, it skips evaluating `a / b > 1` entirely -- the safety check has to run *first* for
+the short-circuit to protect you.

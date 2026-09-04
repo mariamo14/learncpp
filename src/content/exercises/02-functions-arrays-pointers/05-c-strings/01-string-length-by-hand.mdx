@@ -1,0 +1,63 @@
+---
+title: "String Length by Hand"
+lesson: "02-functions-arrays-pointers/05-c-strings"
+order: 1
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int my_strlen(const char *s) {
+      // TODO: return the number of characters in s, not counting the
+      // null terminator. Don't call the library strlen -- walk the
+      // array yourself with s[i] (or *s) until you reach '\0'.
+      return 0;
+  }
+
+  int main(void) {
+      char word[100];
+      scanf("%99s", word);
+      printf("Length: %d\n", my_strlen(word));
+      return 0;
+  }
+tests:
+  - name: "sample: hello"
+    stdin: "hello"
+    expectedOutput: "Length: 5"
+    hidden: false
+  - name: "single character"
+    stdin: "a"
+    expectedOutput: "Length: 1"
+    hidden: true
+  - name: "longer word"
+    stdin: "algorithm"
+    expectedOutput: "Length: 9"
+    hidden: true
+hints:
+  - "s[i] != '\\0' is the condition -- keep incrementing i and checking, exactly like the digit-peeling and array-traversal loops from earlier modules, just with a different stopping condition."
+  - "int count = 0; while (s[count] != '\\0') { count++; } return count;"
+solution: |
+  #include <stdio.h>
+
+  int my_strlen(const char *s) {
+      int count = 0;
+      while (s[count] != '\0') {
+          count++;
+      }
+      return count;
+  }
+
+  int main(void) {
+      char word[100];
+      scanf("%99s", word);
+      printf("Length: %d\n", my_strlen(word));
+      return 0;
+  }
+---
+
+Implement your own version of `strlen` -- count the characters in `s` up to, but not including, its null
+terminator. Don't call the real `strlen`; the point of this exercise is the loop itself, which every other string
+exercise in this lesson builds on.
+
+`s` is `const char *` for the same reason you saw pointer parameters marked `const` in the last lesson: this
+function only reads through `s`, so its signature should say so.

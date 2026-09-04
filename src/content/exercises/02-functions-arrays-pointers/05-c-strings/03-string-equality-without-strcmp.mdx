@@ -1,0 +1,74 @@
+---
+title: "String Equality Without strcmp"
+lesson: "02-functions-arrays-pointers/05-c-strings"
+order: 3
+difficulty: "medium"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int strings_equal(const char *a, const char *b) {
+      // TODO: return 1 if a and b contain exactly the same characters
+      // in the same order and are the same length, 0 otherwise.
+      // Compare character by character until a mismatch, or until
+      // both reach their null terminator at the same position. Don't
+      // call strcmp.
+      return 0;
+  }
+
+  int main(void) {
+      char a[100], b[100];
+      scanf("%99s %99s", a, b);
+      printf("%s\n", strings_equal(a, b) ? "Equal" : "Not equal");
+      return 0;
+  }
+tests:
+  - name: "sample: equal words"
+    stdin: "cat cat"
+    expectedOutput: "Equal"
+    hidden: false
+  - name: "different words, same length"
+    stdin: "cat dog"
+    expectedOutput: "Not equal"
+    hidden: true
+  - name: "one is a prefix of the other"
+    stdin: "cat cats"
+    expectedOutput: "Not equal"
+    hidden: true
+  - name: "equal, longer"
+    stdin: "same same"
+    expectedOutput: "Equal"
+    hidden: true
+hints:
+  - "Walk both strings with the same index i, comparing a[i] to b[i], as long as neither has hit '\\0' yet."
+  - "The 'cat' vs 'cats' case is the one to design around: if your loop stops the moment either string hits its terminator and then just returns 1, it will wrongly call these equal, since every character they share does match. You need to check that BOTH reached '\\0' at the same i, not just that no mismatch occurred before one of them did."
+  - "int i = 0; while (a[i] != '\\0' && b[i] != '\\0') { if (a[i] != b[i]) return 0; i++; } return a[i] == '\\0' && b[i] == '\\0';"
+solution: |
+  #include <stdio.h>
+
+  int strings_equal(const char *a, const char *b) {
+      int i = 0;
+      while (a[i] != '\0' && b[i] != '\0') {
+          if (a[i] != b[i]) {
+              return 0;
+          }
+          i++;
+      }
+      return a[i] == '\0' && b[i] == '\0';
+  }
+
+  int main(void) {
+      char a[100], b[100];
+      scanf("%99s %99s", a, b);
+      printf("%s\n", strings_equal(a, b) ? "Equal" : "Not equal");
+      return 0;
+  }
+---
+
+Implement string equality yourself, without calling `strcmp`. This is worth doing by hand once specifically
+because the natural-looking wrong answer is subtle: it's not enough to compare characters until one string's
+terminator shows up and declare victory if nothing mismatched along the way. `"cat"` and `"cats"` share every
+character in `"cat"`'s length -- if your loop only checks for mismatches up to the shorter string's end, it'll
+wrongly call them equal. The fix is checking, after the comparison loop, that **both** strings hit `'\0'` at the
+exact same position -- if one is still going, they're different lengths, and can't be equal no matter how much of
+a shared prefix they have.

@@ -1,0 +1,61 @@
+---
+title: "Count Set Bits"
+lesson: "01-c-foundations/06-bitwise-operators"
+order: 3
+difficulty: "hard"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      unsigned int n;
+      scanf("%u", &n);
+
+      // TODO: count how many bits of n are 1, using a loop with &
+      // and >> (not any library function). Print: Set bits: <count>
+      return 0;
+  }
+tests:
+  - name: "sample: 13 (1101)"
+    stdin: "13"
+    expectedOutput: "Set bits: 3"
+    hidden: false
+  - name: "zero"
+    stdin: "0"
+    expectedOutput: "Set bits: 0"
+    hidden: true
+  - name: "all-ones byte"
+    stdin: "255"
+    expectedOutput: "Set bits: 8"
+    hidden: true
+  - name: "a single high bit"
+    stdin: "1024"
+    expectedOutput: "Set bits: 1"
+    hidden: true
+hints:
+  - "n & 1 gives you just the lowest bit (0 or 1). Add that to a running count, then shift n right by 1 (n >>= 1;) to bring the next bit into that lowest position, and repeat until n is 0."
+  - "int count = 0; while (n != 0) { count += n & 1; n >>= 1; } printf(\"Set bits: %d\\n\", count);"
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      unsigned int n;
+      scanf("%u", &n);
+
+      int count = 0;
+      while (n != 0) {
+          count += n & 1;
+          n >>= 1;
+      }
+      printf("Set bits: %d\n", count);
+      return 0;
+  }
+---
+
+Count how many bits of `n` are `1` -- its "population count" -- using a loop, `&`, and `>>`. No library function
+does this for you here; you're building the loop by hand.
+
+The pattern: `n & 1` isolates just the lowest bit of whatever `n` currently holds. Add that (`0` or `1`) to a
+running total, then shift `n` right by one position so the next bit becomes the new lowest bit, and repeat. The
+loop naturally ends once every bit has been shifted out and `n` becomes `0`. Trace `n = 13` (`1101` in binary) by
+hand, one iteration at a time, before you trust your code against it.

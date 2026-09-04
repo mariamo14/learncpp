@@ -1,0 +1,94 @@
+---
+title: "printf, scanf & Overflow"
+module: "01-c-foundations"
+order: 7
+summary: "Reading format strings precisely, formatting numeric output, and what actually happens when a value doesn't fit in its type."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+    #include <limits.h>
+
+    int main(void) {
+        int max = INT_MAX;
+        printf("INT_MAX       = %d\n", max);
+        printf("INT_MAX + 1   = %d   (signed overflow: undefined behavior)\n", max + 1);
+
+        unsigned int umax = UINT_MAX;
+        printf("UINT_MAX      = %u\n", umax);
+        printf("UINT_MAX + 1  = %u   (unsigned wraparound: well-defined)\n", umax + 1);
+        return 0;
+    }
+---
+
+## Why this matters
+
+You've been using `%d`, `%.2f`, and `%c` since the first lesson without a full explanation of the pattern behind
+them. This lesson fills that in properly, and then covers something format strings can't protect you from at all:
+every integer type has a fixed range, and what happens when a calculation goes past it depends entirely on one
+detail of the type you almost never think about -- whether it's signed or unsigned.
+
+## The pattern behind every placeholder you've used so far
+
+Every placeholder you've seen so far follows the same shape: a `%`, then a *conversion character* that names the
+type it expects. You already know three:
+
+- `%d` -- a signed `int`
+- `%f` -- a `double`
+- `%c` -- a single `char`
+
+Two more are worth adding to that list now:
+
+- `%u` -- an `unsigned int` (covered below)
+- `%s` -- a string (a run of `char`s) -- you won't need this until this course covers arrays, but you'll start
+  seeing it in example code before then
+
+And you've already used two modifiers alongside a conversion character, without them being named: `%.2f` is `%f`
+with `.2` inserted, meaning "round to 2 digits after the decimal point"; `%5d` would be `%d` padded with spaces to
+at least 5 characters wide. These modifiers slot in between the `%` and the letter, and you can mostly learn them
+as you need them rather than memorizing a full list now.
+
+**One thing worth knowing now, because it causes real bugs**: plain C does not check that your placeholders match
+your arguments' actual types. Writing `%f` but passing an `int` compiles without complaint and prints nonsense at
+runtime -- there's no safety net here the way there might be in a language with runtime type checking.
+
+## `scanf`'s specifiers don't always match `printf`'s
+
+You hit this already, back in the very first lesson's third exercise, without a full explanation: reading a
+`double` needs `%lf` in `scanf`, but *printing* a `double` uses plain `%f` in `printf` -- no `l`. That asymmetry is
+real, not a typo to memorize around: `scanf` needs the `l` to know exactly how many bytes to write into your
+variable, while `printf` doesn't need that information on the way out. You don't need to know the deeper reason
+why to use this correctly -- just: `%lf` to read a `double`, `%f` to print one. This is the single most common
+`scanf` mistake, so it's worth having it named explicitly once.
+
+## Every integer type has a fixed range
+
+An `int` reserves a fixed number of bytes (4, on the platforms you're using here), which means it can only
+represent a fixed range of numbers -- not "as large as you want," the way a Python integer can grow. The largest
+value a normal `int` can hold has a name, `INT_MAX` (from `<limits.h>`, included in the worked example), and it's
+a little over 2.1 billion. The question this lesson answers is: what happens if a calculation tries to go one past
+that?
+
+## Signed overflow: undefined, not defined-but-weird
+
+`INT_MAX + 1` -- adding 1 to the largest representable `int` -- is what's called **undefined behavior** in C. This
+term means something very specific and worth sitting with: it's not that the answer is "wrong" or "implementation
+defined weirdness you could look up." The C standard makes *no promise whatsoever* about what happens next. In
+practice, on the compiler this course uses, you'll usually see it silently wrap around to a huge negative number.
+But "usually, on this compiler, right now" is not a guarantee -- the compiler is technically permitted to do
+anything at all once this happens, including producing a result that changes between two runs of the exact same
+program. The practical lesson: don't let a signed calculation get anywhere near this boundary on purpose, and don't
+write code whose correctness depends on what signed overflow "usually" does.
+
+## Unsigned overflow: the opposite -- fully defined
+
+`unsigned int` (an integer type that can never be negative) behaves completely differently at its boundary, and
+this difference is guaranteed by the standard, not a compiler quirk: arithmetic on it always wraps around, exactly
+like a car odometer rolling over from its highest number back to zero. `UINT_MAX + 1` -- one past the largest
+unsigned value -- is guaranteed to be exactly `0`. Always. On every compliant compiler.
+
+The worked example prints both boundaries side by side specifically so you can see the contrast: the signed case
+does *something* that might look plausible, and the unsigned case does something you can actually rely on. Run it,
+then hold onto this distinction -- "signed overflow: never let it happen" versus "unsigned overflow: wraps
+predictably, and can even be useful on purpose" -- for the exercises ahead.

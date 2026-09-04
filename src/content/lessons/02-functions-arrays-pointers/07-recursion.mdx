@@ -1,0 +1,94 @@
+---
+title: "Recursion"
+module: "02-functions-arrays-pointers"
+order: 7
+summary: "A function calling itself, one call frame at a time -- what makes it stop, and what it actually costs on the stack."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+
+    long factorial(int n) {
+        if (n <= 1) {
+            return 1;
+        }
+        return n * factorial(n - 1);
+    }
+
+    int main(void) {
+        int n = 5;
+        printf("%d! = %ld\n", n, factorial(n));
+        return 0;
+    }
+---
+
+## Why this matters
+
+Every function you've written so far calls other functions, never itself. There's nothing in C that forbids a
+function from calling itself, though -- and for problems that are naturally defined in terms of smaller versions of
+themselves ("5 factorial is 5 times 4 factorial"), letting a function do exactly that often produces far shorter,
+more directly readable code than the equivalent loop. It also comes with a real, concrete cost, in terms you
+already have from Module 2's stack lesson: every call -- including a recursive one -- gets its own stack frame,
+and those frames pile up until the recursion stops.
+
+## Every recursive function needs a base case
+
+```c
+long factorial(int n) {
+    if (n <= 1) {
+        return 1;    // base case: stops the recursion
+    }
+    return n * factorial(n - 1);   // recursive case: calls itself with a smaller n
+}
+```
+
+Two parts, and both are required. The **base case** (`n <= 1`) is the condition simple enough to answer directly,
+with no further recursive call -- without one, the function would call itself forever. The **recursive case**
+handles everything else by calling the *same function*, but with an input that's *closer* to the base case (`n -
+1`, one step closer to `n <= 1` than `n` was). If the recursive case ever called itself with the same `n`, or with
+`n` moving *away* from the base case, the recursion would never terminate.
+
+## Tracing the call stack, one frame at a time
+
+This is the mental model worth being able to reproduce exactly, because it's the single most common source of
+confusion about recursion: calling `factorial(5)` does not "restart" the function -- it creates a **new, separate
+stack frame**, with its own copy of `n`, stacked on top of the frame that called it. Trace it:
+
+```
+factorial(5) calls factorial(4), then waits to multiply by 5
+  factorial(4) calls factorial(3), then waits to multiply by 4
+    factorial(3) calls factorial(2), then waits to multiply by 3
+      factorial(2) calls factorial(1), then waits to multiply by 2
+        factorial(1) hits the base case, returns 1 immediately
+      factorial(2) resumes: 2 * 1 = 2, returns 2
+    factorial(3) resumes: 3 * 2 = 6, returns 6
+  factorial(4) resumes: 4 * 6 = 24, returns 24
+factorial(5) resumes: 5 * 24 = 120, returns 120
+```
+
+Calls go five frames deep before anything actually returns a value -- each frame is genuinely paused, mid-line, at
+`return n * factorial(n - 1);`, waiting for the recursive call to hand back a result before it can finish its own
+multiplication. Only once `factorial(1)` hits the base case does anything start actually returning, and the
+returns unwind back up through every waiting frame in reverse order. This "go all the way down, then unwind all
+the way back up" shape is the shape of every simple recursive function.
+
+## Stack overflow is what happens when the base case never gets reached
+
+Module 2 covered the stack as fast, automatic, and *limited in size* -- typically a few megabytes. A recursive
+function with a broken base case (or no base case at all) keeps creating new frames without ever returning, and
+eventually runs the stack out of room entirely. This is a real, literal **stack overflow**: the program crashes,
+distinct from any of the undefined-behavior categories covered so far, caused specifically by too many nested,
+unfinished function calls. Whenever a recursive function misbehaves by hanging or crashing rather than giving a
+wrong answer, an unreachable or incorrect base case is the first thing to check.
+
+## Recursion isn't free, and isn't always the best tool
+
+Every one of the frames traced above is genuinely allocated -- recursion is doing real work managing that stack of
+paused calls, and it is not free. Some recursive definitions also re-derive the same value many times over: a
+recursive definition of the Fibonacci sequence, `fib(n) = fib(n-1) + fib(n-2)`, recomputes `fib(n-2)` from scratch
+inside both the call for `fib(n-1)` and directly -- an exercise below has you write exactly this, both to build the
+"two recursive calls in one function" pattern and to notice how quickly that redundant recomputation adds up. Every
+recursive function *can* be rewritten as a loop; the deciding factor is usually readability, not raw necessity --
+reach for recursion when a problem's own definition is naturally recursive (as factorial's is), and prefer a loop
+when it isn't.

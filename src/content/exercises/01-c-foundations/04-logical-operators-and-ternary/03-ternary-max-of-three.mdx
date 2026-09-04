@@ -1,0 +1,59 @@
+---
+title: "Ternary Max of Three"
+lesson: "01-c-foundations/04-logical-operators-and-ternary"
+order: 3
+difficulty: "medium"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int a, b, c;
+      scanf("%d %d %d", &a, &b, &c);
+
+      // TODO: compute the maximum of a, b, and c using a single
+      // expression built from two chained ternary operators -- no
+      // if statements. Print it as: Max: <value>
+      return 0;
+  }
+tests:
+  - name: "sample: 3 9 5"
+    stdin: "3 9 5"
+    expectedOutput: "Max: 9"
+    hidden: false
+  - name: "all equal"
+    stdin: "5 5 5"
+    expectedOutput: "Max: 5"
+    hidden: true
+  - name: "all negative"
+    stdin: "-1 -5 -3"
+    expectedOutput: "Max: -1"
+    hidden: true
+  - name: "tie between first and last"
+    stdin: "10 2 10"
+    expectedOutput: "Max: 10"
+    hidden: true
+hints:
+  - "Start with the two-value version from the lesson: (a > b) ? a : b -- that gives you the max of just a and b. Now you need to compare that result against c."
+  - "Nest a second ternary in place of each branch: (a > b) ? ((a > c) ? a : c) : ((b > c) ? b : c) -- 'if a is the bigger of a/b, compare it to c; otherwise compare b to c.'"
+  - "int max = (a > b) ? ((a > c) ? a : c) : ((b > c) ? b : c); printf(\"Max: %d\\n\", max);"
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int a, b, c;
+      scanf("%d %d %d", &a, &b, &c);
+
+      int max = (a > b) ? ((a > c) ? a : c) : ((b > c) ? b : c);
+      printf("Max: %d\n", max);
+      return 0;
+  }
+---
+
+Read three integers and print the largest, using a **single expression** built from two ternary operators -- not
+an `if`/`else if`/`else` chain.
+
+The trick is nesting: first decide whether `a` or `b` is bigger (a plain two-way ternary), then whichever one wins
+that comparison needs to be compared against `c` in turn. That's two ternaries, one nested inside a branch of the
+other. Parenthesize generously -- it costs nothing and makes the nesting unambiguous to a reader (including you,
+tomorrow).

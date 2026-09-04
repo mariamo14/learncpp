@@ -1,0 +1,60 @@
+---
+title: "Fix: Wrong const"
+lesson: "02-functions-arrays-pointers/03-const-correctness"
+order: 3
+difficulty: "hard"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  void double_value(const int *value) {
+      *value = *value * 2;
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      double_value(&n);
+      printf("Doubled: %d\n", n);
+      return 0;
+  }
+tests:
+  - name: "sample: 5"
+    stdin: "5"
+    expectedOutput: "Doubled: 10"
+    hidden: false
+  - name: "zero"
+    stdin: "0"
+    expectedOutput: "Doubled: 0"
+    hidden: true
+  - name: "negative"
+    stdin: "-7"
+    expectedOutput: "Doubled: -14"
+    hidden: true
+hints:
+  - "Submit this as-is and read the error -- 'assignment of read-only location' names exactly the line and the problem: this function needs to write through value, but its parameter says it won't."
+  - "double_value's whole job is to modify the caller's variable through the pointer -- that's incompatible with const int *. Remove const from the parameter's type; nothing else in the function needs to change."
+solution: |
+  #include <stdio.h>
+
+  void double_value(int *value) {
+      *value = *value * 2;
+  }
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      double_value(&n);
+      printf("Doubled: %d\n", n);
+      return 0;
+  }
+---
+
+This is the "Double In Place" pattern from the previous lesson -- except this version doesn't compile. Submit it
+as-is and read the error before changing anything.
+
+The bug isn't in the arithmetic; it's a `const` that shouldn't be there. `double_value`'s entire purpose is to
+write a new value through its pointer parameter -- that's fundamentally at odds with declaring that parameter
+`const int *`, which promises the opposite. Unlike the earlier exercises in this lesson, where `const` was exactly
+right, here it's a real bug: not every pointer parameter should be `const`, only the ones that genuinely never
+write through it. Part of const-correctness is knowing when *not* to reach for `const`, not just how to write it.

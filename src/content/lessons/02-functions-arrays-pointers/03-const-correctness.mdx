@@ -1,0 +1,87 @@
+---
+title: "const Correctness with Pointers"
+module: "02-functions-arrays-pointers"
+order: 3
+summary: "Using const to make a promise the compiler actually checks: this pointer will only be used to read, never to write."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+
+    void describe(const int *p) {
+        printf("value = %d\n", *p);
+        // *p = 99;  // uncomment this line to see a real compile error
+    }
+
+    int main(void) {
+        int x = 42;
+        describe(&x);
+
+        x = 100;
+        describe(&x);
+
+        return 0;
+    }
+---
+
+## Why this matters
+
+You've now written several functions that take a pointer specifically so they can *modify* the caller's variable
+through it. Just as often, you'll write functions that take a pointer for a completely different reason -- to
+avoid copying a large piece of data -- while having no intention of changing anything through it at all. `const`
+lets you say that difference out loud, in the function's own signature, in a way the compiler actually
+**enforces**: not a comment that might go stale, but a promise that fails to compile if you break it.
+
+## `const int *`: a pointer to something you promise not to modify
+
+```c
+void describe(const int *p) { ... }
+```
+
+`describe`'s parameter is a **pointer to a `const int`** -- read that phrase literally: it's a pointer, and what
+it points *at* is treated as read-only through this pointer. Try uncommenting the `*p = 99;` line in the worked
+example and running it: you'll get a real compile error, `assignment of read-only location`, not a warning. The
+compiler is checking, at every call site, that `describe` genuinely never writes through `p` -- which means anyone
+reading `describe`'s signature knows that guarantee holds, without reading its implementation.
+
+Notice what `const` does *not* do here: `x` itself, in `main`, is a completely ordinary, modifiable `int` -- the
+worked example changes it (`x = 100;`) between the two calls, and that's fine. `const int *p` restricts what you
+can do *through `p`*; it says nothing about whether the underlying variable can be changed some other way.
+
+## `int *const`: a pointer that can't be pointed elsewhere
+
+There's a second, independent thing `const` can restrict, and the position of the word matters:
+
+```c
+int *const p = &x;   // p itself can never be reassigned to point elsewhere
+```
+
+This is the mirror image of the last section: here, `*p = 99;` is completely fine (`p` still points at an ordinary
+`int`), but `p = &y;` -- pointing `p` somewhere else after its declaration -- is the compile error. You'll use this
+combination far less often than `const int *`, but recognizing it on sight matters, because the two are easy to
+confuse and mean genuinely different things.
+
+## Reading a const-pointer declaration: right to left
+
+With both forms in play, `const int *p` and `int *const p` look almost identical but restrict opposite things. The
+reliable way to read either one is to start at the variable's name and read outward:
+
+- `int *const p` -- start at `p`: "`p` is a `const` pointer to an `int`." The `const` sits immediately next to `p`,
+  so it describes `p` itself.
+- `const int *p` -- start at `p`: "`p` is a pointer to a `const int`." The `const` sits next to `int`, describing
+  what's pointed *at*, not `p`.
+
+(You may also see `const int *p` written as `int const *p` -- the two are exactly equivalent; `const` is allowed
+either right before or right after the type it's modifying. This course sticks to `const int *` for consistency.)
+And you can combine both restrictions at once -- `const int *const p` -- a pointer that can neither be reassigned
+nor used to modify what it points at, though you won't need that combination often in this course.
+
+## Passing a plain pointer where a const one is expected is always safe
+
+One direction of conversion happens automatically, with no cast and no warning: you can pass an ordinary `int *`
+anywhere a `const int *` is expected (exactly what the worked example does, passing `&x` -- an ordinary address --
+into `describe`, which asks for `const int *`). This makes sense once you see it as a promise, not a restriction on
+the *caller*: `describe` is promising *it* won't modify your data, so handing it a fully modifiable pointer costs
+you nothing. The reverse direction -- passing a `const int *` somewhere a plain `int *` is expected -- is a compile
+error, for the same reason a bank won't accept "I promise not to spend this" as proof you're allowed to spend it.

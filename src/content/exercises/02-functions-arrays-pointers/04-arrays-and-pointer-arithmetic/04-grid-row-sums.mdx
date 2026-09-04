@@ -1,0 +1,77 @@
+---
+title: "Grid Row Sums"
+lesson: "02-functions-arrays-pointers/04-arrays-and-pointer-arithmetic"
+order: 4
+difficulty: "medium"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int rows, cols;
+      scanf("%d %d", &rows, &cols);
+
+      int grid[10][10];
+      for (int r = 0; r < rows; r++) {
+          for (int c = 0; c < cols; c++) {
+              scanf("%d", &grid[r][c]);
+          }
+      }
+
+      // TODO: for each row, print the sum of that row's elements, one
+      // sum per line, in row order.
+      return 0;
+  }
+tests:
+  - name: "sample: 2x3 grid"
+    stdin: "2 3\n1 2 3\n4 5 6"
+    expectedOutput: |
+      6
+      15
+    hidden: false
+  - name: "3x2 grid with a negative"
+    stdin: "3 2\n1 1\n0 0\n-1 5"
+    expectedOutput: |
+      2
+      0
+      4
+    hidden: true
+  - name: "single row"
+    stdin: "1 4\n10 20 30 40"
+    expectedOutput: "100"
+    hidden: true
+hints:
+  - "One outer loop per row, one inner loop per column within that row -- reset a sum to 0 at the start of each row, accumulate across the inner loop, then print it once the inner loop finishes."
+  - "for (int r = 0; r < rows; r++) { int sum = 0; for (int c = 0; c < cols; c++) { sum += grid[r][c]; } printf(\"%d\\n\", sum); }"
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int rows, cols;
+      scanf("%d %d", &rows, &cols);
+
+      int grid[10][10];
+      for (int r = 0; r < rows; r++) {
+          for (int c = 0; c < cols; c++) {
+              scanf("%d", &grid[r][c]);
+          }
+      }
+
+      for (int r = 0; r < rows; r++) {
+          int sum = 0;
+          for (int c = 0; c < cols; c++) {
+              sum += grid[r][c];
+          }
+          printf("%d\n", sum);
+      }
+      return 0;
+  }
+---
+
+Read a `rows` x `cols` grid of integers (already read into `grid` for you), and print the sum of each row, one sum
+per line.
+
+This is the standard "visit every element of a 2D array" nested loop from the lesson, with one twist: the sum has
+to *reset* at the start of every row, not accumulate across the whole grid. Declare `sum` fresh inside the outer
+loop, not before it -- if you declare it once outside both loops, you'll get one running total for the entire grid
+instead of one total per row.

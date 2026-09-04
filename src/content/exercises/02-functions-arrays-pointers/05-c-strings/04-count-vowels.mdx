@@ -1,0 +1,62 @@
+---
+title: "Count Vowels"
+lesson: "02-functions-arrays-pointers/05-c-strings"
+order: 4
+difficulty: "hard"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      char word[100];
+      scanf("%99s", word);
+
+      // TODO: count how many characters in word are vowels -- a, e, i,
+      // o, or u, uppercase or lowercase -- and print: Vowels: <count>
+      // Walk the string until '\0'; don't assume a fixed length.
+      return 0;
+  }
+tests:
+  - name: "sample: hello"
+    stdin: "hello"
+    expectedOutput: "Vowels: 2"
+    hidden: false
+  - name: "all uppercase vowels"
+    stdin: "AEIOU"
+    expectedOutput: "Vowels: 5"
+    hidden: true
+  - name: "no vowels"
+    stdin: "xyz"
+    expectedOutput: "Vowels: 0"
+    hidden: true
+  - name: "mixed case, longer word"
+    stdin: "Programming"
+    expectedOutput: "Vowels: 3"
+    hidden: true
+hints:
+  - "for (int i = 0; word[i] != '\\0'; i++) walks the string; test each word[i] against 10 possibilities (5 letters, 2 cases each) with ||."
+  - "char c = word[i]; if (c=='a'||c=='e'||c=='i'||c=='o'||c=='u'||c=='A'||c=='E'||c=='I'||c=='O'||c=='U') { count++; }"
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      char word[100];
+      scanf("%99s", word);
+
+      int count = 0;
+      for (int i = 0; word[i] != '\0'; i++) {
+          char c = word[i];
+          if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u' ||
+              c == 'A' || c == 'E' || c == 'I' || c == 'O' || c == 'U') {
+              count++;
+          }
+      }
+      printf("Vowels: %d\n", count);
+      return 0;
+  }
+---
+
+Count how many characters in `word` are vowels (either case), and print the count. This combines two things from
+earlier in the course: walking a string until its null terminator (this lesson), and comparing a `char` against
+several specific values (Module 1's `char`-as-small-integer coverage) -- there's no shortcut around listing out
+all ten possibilities (5 letters × 2 cases) explicitly.

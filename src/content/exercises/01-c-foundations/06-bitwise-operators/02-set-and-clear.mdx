@@ -1,0 +1,57 @@
+---
+title: "Set and Clear"
+lesson: "01-c-foundations/06-bitwise-operators"
+order: 2
+difficulty: "medium"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      unsigned int n;
+      int set_pos, clear_pos;
+      scanf("%u %d %d", &n, &set_pos, &clear_pos);
+
+      // TODO: starting from n, turn bit `set_pos` on, then turn bit
+      // `clear_pos` off (in that order -- if they're the same position,
+      // the clear should win). Print the result as: Result: <value>
+      return 0;
+  }
+tests:
+  - name: "sample: set bit 1, clear bit 3 (already 0)"
+    stdin: "0 1 3"
+    expectedOutput: "Result: 2"
+    hidden: false
+  - name: "clear a bit that's actually set"
+    stdin: "15 0 2"
+    expectedOutput: "Result: 11"
+    hidden: true
+  - name: "same position set then cleared -- clear wins"
+    stdin: "4 1 1"
+    expectedOutput: "Result: 4"
+    hidden: true
+hints:
+  - "Do this in two separate steps, exactly like the lesson's idiom: n = n | (1 << set_pos); then n = n & ~(1 << clear_pos);. Doing the clear second is what makes it win when the positions match."
+  - "n = n | (1 << set_pos); n = n & ~(1 << clear_pos); printf(\"Result: %u\\n\", n);"
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      unsigned int n;
+      int set_pos, clear_pos;
+      scanf("%u %d %d", &n, &set_pos, &clear_pos);
+
+      n = n | (1 << set_pos);
+      n = n & ~(1 << clear_pos);
+      printf("Result: %u\n", n);
+      return 0;
+  }
+---
+
+Apply both halves of the set/check/clear idiom in sequence: turn `set_pos` on, then turn `clear_pos` off, and print
+the resulting value of `n`.
+
+Doing this as two separate statements, in order, is deliberate: it's what makes the third test case well-defined
+when `set_pos` and `clear_pos` are the same position -- the set happens, and then the clear immediately undoes it,
+so the net effect on that bit is nothing. Trying to combine both into one clever expression is more likely to get
+that tie-breaking case wrong than doing it in two obvious steps.

@@ -1,0 +1,65 @@
+---
+title: "Range Check"
+lesson: "01-c-foundations/04-logical-operators-and-ternary"
+order: 1
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int value, low, high;
+      scanf("%d %d %d", &value, &low, &high);
+
+      // TODO: print "In range" if low <= value <= high (both endpoints
+      // included), otherwise print "Out of range". Combine both
+      // comparisons into a single condition with &&.
+      return 0;
+  }
+tests:
+  - name: "sample: inside"
+    stdin: "5 1 10"
+    expectedOutput: "In range"
+    hidden: false
+  - name: "above the range"
+    stdin: "15 1 10"
+    expectedOutput: "Out of range"
+    hidden: true
+  - name: "lower boundary, inclusive"
+    stdin: "1 1 10"
+    expectedOutput: "In range"
+    hidden: true
+  - name: "upper boundary, inclusive"
+    stdin: "10 1 10"
+    expectedOutput: "In range"
+    hidden: true
+  - name: "below the range"
+    stdin: "0 1 10"
+    expectedOutput: "Out of range"
+    hidden: true
+hints:
+  - "C doesn't let you chain comparisons like low <= value <= high the way math notation does -- that would actually compile (as (low <= value) <= high), but it does not mean what you want. Write it as two separate comparisons joined by &&."
+  - "if (value >= low && value <= high) { ... }"
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int value, low, high;
+      scanf("%d %d %d", &value, &low, &high);
+
+      if (value >= low && value <= high) {
+          printf("In range\n");
+      } else {
+          printf("Out of range\n");
+      }
+      return 0;
+  }
+---
+
+Read `value`, `low`, and `high`, and print `In range` if `value` falls within `[low, high]` inclusive, otherwise
+`Out of range`.
+
+A tempting but wrong instinct here is to write `low <= value <= high` directly, the way you would on paper. That
+actually compiles in C -- but not because C understands chained comparisons. It parses as `(low <= value) <= high`:
+the first comparison produces `0` or `1`, and *that* gets compared against `high`, which is almost never what you
+meant. Use `&&` to combine two independent comparisons instead.

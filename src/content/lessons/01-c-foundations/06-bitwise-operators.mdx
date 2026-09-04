@@ -1,0 +1,90 @@
+---
+title: "Bitwise Operators"
+module: "01-c-foundations"
+order: 6
+summary: "Operating on the individual bits of an integer directly -- AND, OR, XOR, NOT, and the shifts -- and the flag-checking idiom built from them."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+
+    int main(void) {
+        unsigned int flags = 0;
+
+        flags = flags | (1 << 2);
+        flags = flags | (1 << 0);
+        printf("flags = %u\n", flags);
+
+        printf("bit 2 set? %d\n", (flags & (1 << 2)) != 0);
+        printf("bit 1 set? %d\n", (flags & (1 << 1)) != 0);
+
+        flags = flags & ~(1 << 0);
+        printf("after clearing bit 0: %u\n", flags);
+
+        return 0;
+    }
+---
+
+## Why this matters
+
+Every value you've worked with so far, this lesson treats differently: not as a number, but as a row of individual
+bits you can inspect and change directly. This matters more than it might look like at first -- flags, permission
+bits, network protocols, and low-level hardware control all represent state as individual bits packed into an
+integer, and the operators in this lesson are how you work with that representation directly.
+
+## The four bitwise operators, one bit position at a time
+
+Each of these compares or transforms two numbers **bit by bit**, independently at every position -- there's no
+carrying or borrowing the way there is in `+` or `-`.
+
+- `&` (AND) -- each result bit is `1` only if *both* input bits at that position are `1`.
+- `|` (OR) -- each result bit is `1` if *either* input bit is `1`.
+- `^` (XOR, "exclusive or") -- each result bit is `1` if the two input bits are *different*.
+- `~` (NOT) -- flips every bit of its single operand: every `1` becomes `0` and every `0` becomes `1`.
+
+Trace `6 & 3` by hand to make this concrete: `6` is `0110` in binary, `3` is `0011`. Lining them up and applying
+`&` at each position: `0010`, which is `2`. Do the same for `6 | 3` (`0111` = `7`) and `6 ^ 3` (`0101` = `5`) before
+moving on -- there's no substitute for actually working through the bits once.
+
+**Don't confuse these with `&&`, `||`, and `!` from the last lesson.** `&` and `&&` look similar and both involve
+"and," but they're doing completely different jobs: `&&` combines two *conditions* into one true/false result
+(and short-circuits); `&` combines two *numbers* into a new number, bit by bit, and always evaluates both sides.
+Using one where you meant the other compiles without complaint and produces a confusing, wrong number instead of
+an error -- worth double-checking any time a condition looks off by exactly one character.
+
+## Shifting bits left and right
+
+`n << k` shifts every bit in `n` left by `k` positions, filling the vacated low bits with `0` -- which also happens
+to multiply `n` by `2^k`. `n >> k` shifts right by `k` positions; for the unsigned integers this course focuses on,
+that divides by `2^k` (rounding down), filling the vacated high bits with `0`.
+
+The far more common use of `<<` in practice, and the one this lesson leans on, isn't arithmetic at all: `1 << k`
+produces a number with a single `1` bit at position `k` and `0`s everywhere else -- exactly the tool you need to
+refer to "just this one bit" out of a larger number, which is the entire subject of the next section.
+
+## The set / check / clear idiom
+
+The worked example builds and inspects a small set of flags packed into one `unsigned int`, using a pattern you'll
+see constantly wherever bit flags are used:
+
+- **Set** bit `k` (turn it on, leave every other bit alone): `flags = flags | (1 << k);` -- OR-ing with a single
+  `1` bit forces that position to `1` without touching any other position, since OR-ing anything with `0` leaves it
+  unchanged.
+- **Check** bit `k` (is it on?): `flags & (1 << k)` -- AND-ing with a single `1` bit zeroes out every other
+  position, leaving a result that's nonzero exactly when bit `k` was set. Compare that against `0` (`!= 0`) to get
+  a clean true/false answer, as the worked example does.
+- **Clear** bit `k` (turn it off, leave every other bit alone): `flags = flags & ~(1 << k);` -- `~(1 << k)` is a
+  number that's `0` at position `k` and `1` everywhere else; AND-ing with it forces position `k` to `0` while
+  AND-ing everything else with `1` leaves it unchanged.
+
+Run the worked example and trace `flags`'s value in binary after each line -- this idiom is worth being able to
+reconstruct from memory, not just recognize.
+
+## A precedence trap worth knowing about explicitly
+
+`&`, `|`, and `^` all bind **looser** than comparison operators like `==` and `!=` -- the reverse of what most
+people guess. `if (flags & mask == 0)` does not check whether `flags & mask` is zero; `==` runs first, so it
+checks `flags & (mask == 0)`, comparing `flags` against either `0` or `1` depending on whether `mask` happened to
+be `0`. This is a real, common bug, not a hypothetical one -- always parenthesize the bitwise part explicitly:
+`(flags & mask) == 0`.

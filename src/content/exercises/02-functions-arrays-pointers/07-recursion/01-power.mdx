@@ -1,0 +1,66 @@
+---
+title: "Power"
+lesson: "02-functions-arrays-pointers/07-recursion"
+order: 1
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  long power(int base, int exponent) {
+      // TODO: return base raised to exponent (exponent is always >= 0),
+      // computed recursively -- no loop. Base case: exponent == 0
+      // returns 1.
+      return 0;
+  }
+
+  int main(void) {
+      int base, exponent;
+      scanf("%d %d", &base, &exponent);
+      printf("Result: %ld\n", power(base, exponent));
+      return 0;
+  }
+tests:
+  - name: "sample: 2^10"
+    stdin: "2 10"
+    expectedOutput: "Result: 1024"
+    hidden: false
+  - name: "exponent zero"
+    stdin: "5 0"
+    expectedOutput: "Result: 1"
+    hidden: true
+  - name: "small case"
+    stdin: "3 4"
+    expectedOutput: "Result: 81"
+    hidden: true
+  - name: "negative base"
+    stdin: "-2 3"
+    expectedOutput: "Result: -8"
+    hidden: true
+hints:
+  - "base^exponent is base times itself, exponent times over -- which is exactly base * (base^(exponent-1)), the same relationship factorial has to (n-1)!."
+  - "if (exponent == 0) { return 1; } return base * power(base, exponent - 1);"
+solution: |
+  #include <stdio.h>
+
+  long power(int base, int exponent) {
+      if (exponent == 0) {
+          return 1;
+      }
+      return base * power(base, exponent - 1);
+  }
+
+  int main(void) {
+      int base, exponent;
+      scanf("%d %d", &base, &exponent);
+      printf("Result: %ld\n", power(base, exponent));
+      return 0;
+  }
+---
+
+Compute `base` raised to `exponent` recursively -- no loop. `exponent` is always `0` or greater.
+
+This is the lesson's `factorial` pattern with the multiplication changed: the base case is `exponent == 0` (raising
+anything to the power `0` is `1`), and the recursive case multiplies `base` by the result of the same problem with
+`exponent` one smaller. Trace `power(2, 3)` by hand, the same way the lesson traced `factorial(5)`, before trusting
+your code.

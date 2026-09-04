@@ -1,0 +1,62 @@
+---
+title: "Array Sum"
+lesson: "02-functions-arrays-pointers/04-arrays-and-pointer-arithmetic"
+order: 1
+difficulty: "easy"
+language: "c"
+starter: |
+  #include <stdio.h>
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      int values[100];
+      for (int i = 0; i < n; i++) {
+          scanf("%d", &values[i]);
+      }
+
+      // TODO: compute and print the sum of the first n elements, as: Sum: <value>
+      return 0;
+  }
+tests:
+  - name: "sample: 4 values"
+    stdin: "4\n1 2 3 4"
+    expectedOutput: "Sum: 10"
+    hidden: false
+  - name: "single value"
+    stdin: "1\n5"
+    expectedOutput: "Sum: 5"
+    hidden: true
+  - name: "negative values"
+    stdin: "5\n-1 -2 -3 -4 -5"
+    expectedOutput: "Sum: -15"
+    hidden: true
+hints:
+  - "A plain for loop over indices 0..n-1, accumulating values[i] into a running total, is all this needs."
+  - "n is always at most 100 here, matching the array's declared size -- you don't need to handle larger input."
+solution: |
+  #include <stdio.h>
+
+  int main(void) {
+      int n;
+      scanf("%d", &n);
+      int values[100];
+      for (int i = 0; i < n; i++) {
+          scanf("%d", &values[i]);
+      }
+
+      int sum = 0;
+      for (int i = 0; i < n; i++) {
+          sum += values[i];
+      }
+      printf("Sum: %d\n", sum);
+      return 0;
+  }
+---
+
+Read a count `n`, then `n` integers into the `values` array (already done for you), and print their sum in the
+form `Sum: 10`.
+
+This is the array-indexing warm-up before the next two exercises push into pointer traversal. `values[i]` and
+`*(values + i)` compute the exact same address, as covered in the lesson -- use whichever reads more naturally
+here; you'll be asked to use the pointer form explicitly in the next exercise.

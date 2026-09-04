@@ -1,0 +1,84 @@
+---
+title: "C-Strings"
+module: "02-functions-arrays-pointers"
+order: 5
+summary: "C has no built-in string type -- text is just a char array with one convention layered on top. This lesson is that convention."
+example:
+  language: c
+  stdin: ""
+  code: |
+    #include <stdio.h>
+    #include <string.h>
+
+    int main(void) {
+        char name[20] = "Ada";
+
+        printf("name = %s\n", name);
+        printf("length = %zu\n", strlen(name));
+        printf("name[3] (the null terminator) = %d\n", name[3]);
+
+        strcat(name, " Lovelace");
+        printf("after strcat: %s\n", name);
+
+        return 0;
+    }
+---
+
+## Why this matters
+
+Python has a `str` type. JavaScript has strings as a first-class kind of value. C has neither -- what you've seen
+called a "string" so far (`%s`, `"hello"`) is really just an ordinary `char` array, plus one convention: somewhere
+in that array sits a special value marking "the text ends here." Understanding that convention precisely -- not
+just using it -- is what this lesson is for, because getting it wrong is one of the most common sources of real
+bugs (and CVEs) in C code in the wild.
+
+## The null terminator: one character marks the end
+
+A C-string is a `char` array containing your text, followed by the character `'\0'` (the "null character," whose
+numeric value is `0` -- unrelated to the digit `'0'`, which has a different value). Every function that works with
+strings -- `printf`'s `%s`, `strlen`, the ones below -- finds the end of the text by scanning forward until it hits
+a `'\0'`, not by being told the array's length.
+
+Writing `char name[20] = "Ada";` does two things at once: it copies the three characters `'A'`, `'d'`, `'a'` into
+the array, *and* the compiler automatically appends a `'\0'` right after them -- so `name` actually holds four
+meaningful bytes (`'A'`, `'d'`, `'a'`, `'\0'`) inside its 20-byte capacity, with 16 bytes left unused. The worked
+example prints `name[3]` as a number specifically to make that terminator visible: it's `0`, not a printable
+character, sitting right after `"Ada"`.
+
+**This is why an array declared without a `'\0'` isn't a valid C-string at all**, even if every character in it is
+meaningful text -- `%s` or `strlen` run against it will keep reading past the array's actual bounds, looking for a
+`'\0'` that isn't there, straight into whatever memory happens to follow. This is undefined behavior, and it's a
+real, common bug class -- not a hypothetical one.
+
+## `strlen` walks the string; `sizeof` doesn't
+
+These are frequently confused, and they measure genuinely different things. `strlen(name)` returns `3` for `"Ada"`
+-- the number of characters *before* the `'\0'`, found by actually scanning the array at runtime, one byte at a
+time, until it hits one. `sizeof(name)`, by contrast, would return `20` -- the array's total declared capacity,
+known at compile time, with no scanning involved and no relationship to what's actually stored in it. Use `strlen`
+to ask "how much text is actually in here"; use `sizeof` to ask "how much room does this array have."
+
+## Useful functions from `<string.h>`
+
+- `strlen(s)` -- length of the string, not counting the terminator (as above).
+- `strcpy(dest, src)` -- copies `src`'s characters, including its terminator, into `dest`.
+- `strcat(dest, src)` -- appends `src` onto the *end* of whatever's already in `dest` (found via `dest`'s own
+  terminator), then re-terminates the result. The worked example uses this to turn `"Ada"` into `"Ada Lovelace"`.
+- `strcmp(a, b)` -- compares two strings and returns `0` if they're **equal**, nonzero otherwise. This one trips
+  people up constantly: `if (strcmp(a, b))` means "if they're **different**," the opposite of what the English
+  reads like. Write `if (strcmp(a, b) == 0)` for "if equal" -- it's more verbose, but it says what it means.
+
+**None of `strcpy` or `strcat` check that the destination array is actually big enough.** If `dest` doesn't have
+room for `src`'s characters plus a terminator, they'll write past the end of the array anyway -- exactly the kind
+of out-of-bounds write covered in Module 3's discussion of memory-safety tools. The worked example's `name` array
+is declared with room to spare (`char name[20]`) specifically so `strcat`-ing `" Lovelace"` onto it stays safely
+inside bounds; sizing a buffer correctly is your responsibility, not something these functions check for you.
+
+## Reading a whole word with `scanf`, and its limit
+
+You've used `scanf("%s", word)` since Module 1 to read a single word into a `char` array -- worth stating
+precisely now: `%s` stops at the first whitespace character (space, tab, or newline) and automatically
+null-terminates what it read. That's exactly why it only ever reads one word, never a whole line containing
+spaces -- a real limitation you'll hit the moment you need to read, say, a full name typed on one line. (Reading a
+full line of text needs a different tool, `fgets`, which this course doesn't need yet -- worth knowing the
+limitation exists, not necessarily the fix.)
