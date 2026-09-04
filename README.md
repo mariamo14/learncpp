@@ -1,4 +1,4 @@
-# learncpp
+# Learn C++
 
 An interactive, auto-graded C++ course you run entirely in the browser: a short reading, a live worked example,
 then exercises you write, run, and submit against hidden test cases. Static site, no backend to host or maintain --
