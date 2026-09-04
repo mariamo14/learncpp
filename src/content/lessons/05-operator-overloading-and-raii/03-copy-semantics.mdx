@@ -1,0 +1,115 @@
+---
+title: "Copy Semantics: The Copy Constructor & Copy Assignment Operator"
+module: "05-operator-overloading-and-raii"
+order: 3
+summary: "What 'copying an object' actually does by default -- and why that default is silently catastrophic for any class that owns a resource through a raw pointer."
+example:
+  language: cpp
+  stdin: ""
+  code: |
+    #include <iostream>
+
+    class Buffer {
+    public:
+        int *data;
+        int size;
+
+        Buffer(int n) : data(new int[n]), size(n) {
+            for (int i = 0; i < size; i++) {
+                data[i] = 0;
+            }
+        }
+
+        ~Buffer() {
+            delete[] data;
+        }
+    };
+
+    int main() {
+        Buffer a(3);
+        a.data[0] = 42;
+
+        Buffer b = a;
+        std::cout << "b.data[0] = " << b.data[0] << std::endl;
+
+        b.data[0] = 99;
+        std::cout << "a.data[0] = " << a.data[0] << std::endl;
+
+        return 0;
+    }
+---
+
+## Why this matters
+
+Run the worked example. You'll see two correct-looking lines print -- and then the program crashes, with a
+message about a "double free." Nothing in `main` looks obviously wrong; the bug is in what `Buffer b = a;` does by
+default, and it's one of the most common real mistakes in resource-owning C++ classes. This lesson is about
+exactly that line.
+
+## `Buffer b = a;` calls a third kind of constructor
+
+Module 4 covered default and parameterized constructors. `Buffer b = a;` calls neither -- it calls the **copy
+constructor**, invoked whenever a *new* object is created directly from an existing one of the same type. Just
+like the default constructor, if you never write one, C++ generates one for you automatically: a **member-wise
+copy**, copying each member's value into the new object, one at a time, exactly as stored.
+
+For a class like Module 4's `Point2D` (two plain `double`s), member-wise copy is exactly correct -- copying `x`
+and `y`'s values independently is all "copying a point" could sensibly mean. For `Buffer`, it's the bug: `data` is
+a `pointer`, and member-wise copy copies the **pointer's value** -- the address it holds -- not the array it
+points at. After `Buffer b = a;`, `a.data` and `b.data` hold the *same* address. They aren't two independent
+buffers; they're two objects sharing one underlying array, each unaware the other exists.
+
+## Tracing the crash
+
+`b.data[0] = 99;` then changing `a.data[0]` to `99` too (even though nothing touched `a` directly) is the first
+visible symptom -- both prints happen correctly, so this part doesn't even look like a crash yet, just a
+surprising result if you didn't expect it. The real damage happens at the very end: when `main` returns, `b` is
+destroyed first (reverse order, from Module 4), running `~Buffer()`, which calls `delete[] data`. Then `a` is
+destroyed, running `~Buffer()` again -- on the **same address**, already freed. This is a **double free**, and
+it's what actually crashes the program. This particular copy -- duplicating a pointer's address without
+duplicating what it points to -- is called a **shallow copy**, and it's exactly what the compiler-generated copy
+constructor does for any class holding a raw resource.
+
+## Writing a correct copy constructor: a deep copy
+
+```cpp
+Buffer(const Buffer &other) : data(new int[other.size]), size(other.size) {
+    for (int i = 0; i < size; i++) {
+        data[i] = other.data[i];
+    }
+}
+```
+
+A **deep copy** allocates its *own* fresh memory and copies the pointed-to *contents* into it, rather than copying
+the address. After this constructor runs, `b.data` and `a.data` point at two completely separate arrays with equal
+contents -- modifying one has no effect on the other, and each object's destructor frees its own memory, once,
+correctly.
+
+## The copy assignment operator: a different function, for a different situation
+
+`Buffer b = a;` (creating `b` for the first time) calls the copy *constructor*. `b = a;`, where `b` already exists
+as a fully-constructed object, calls a **different** function entirely: the **copy assignment operator**,
+`operator=`. Mixing these up is a common early confusion -- the syntax looks almost identical, but one is
+constructing a brand-new object, the other is overwriting an object that's already alive and already owns its own
+resource, which needs to be released first.
+
+```cpp
+Buffer &operator=(const Buffer &other) {
+    if (this == &other) {
+        return *this;
+    }
+    delete[] data;
+    data = new int[other.size];
+    size = other.size;
+    for (int i = 0; i < size; i++) {
+        data[i] = other.data[i];
+    }
+    return *this;
+}
+```
+
+Three things this pattern always needs, in order: **check for self-assignment first** (`if (this == &other)`) --
+without it, `a = a;` would `delete[]` `data` before copying from `other`, except `other` *is* `a`, so you'd be
+copying from memory you just freed. Then **release the old resource** (`delete[] data;`) before acquiring a new
+one, or the old array leaks. Finally, **allocate and copy**, exactly like the copy constructor. It returns
+`Buffer &` -- a reference to `*this` -- for the same chaining reason `operator+=` did in the last lesson.

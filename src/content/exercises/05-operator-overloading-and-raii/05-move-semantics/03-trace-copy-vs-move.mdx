@@ -1,0 +1,92 @@
+---
+title: "Trace: Copy vs. Move"
+lesson: "05-operator-overloading-and-raii/05-move-semantics"
+order: 3
+difficulty: "hard"
+language: "cpp"
+starter: |
+  #include <iostream>
+  #include <utility>
+
+  class Buffer {
+  public:
+      int size;
+
+      Buffer(int n) : size(n) {
+          std::cout << "Constructed " << size << std::endl;
+      }
+
+      Buffer(const Buffer &other) : size(other.size) {
+          std::cout << "Copied " << size << std::endl;
+      }
+
+      Buffer(Buffer &&other) noexcept : size(other.size) {
+          other.size = 0;
+          std::cout << "Moved" << std::endl;
+      }
+  };
+
+  int main() {
+      Buffer a(1);
+      Buffer b(2);
+
+      // TODO: initialize c as an ordinary COPY of a, then initialize d
+      // by MOVING from b (using std::move) -- in that order. Nothing
+      // else to write; the constructors already print everything
+      // needed to check your work.
+
+      return 0;
+  }
+tests:
+  - name: "copy then move"
+    stdin: ""
+    expectedOutput: |
+      Constructed 1
+      Constructed 2
+      Copied 1
+      Moved
+    hidden: false
+hints:
+  - "Buffer c = a; is an ordinary copy (a is a named variable -- an lvalue -- so this can only ever copy, never move, even without seeing operator overload details). Buffer d = std::move(b); forces the move constructor by casting b to an rvalue."
+  - "Buffer c = a;\nBuffer d = std::move(b);"
+solution: |
+  #include <iostream>
+  #include <utility>
+
+  class Buffer {
+  public:
+      int size;
+
+      Buffer(int n) : size(n) {
+          std::cout << "Constructed " << size << std::endl;
+      }
+
+      Buffer(const Buffer &other) : size(other.size) {
+          std::cout << "Copied " << size << std::endl;
+      }
+
+      Buffer(Buffer &&other) noexcept : size(other.size) {
+          other.size = 0;
+          std::cout << "Moved" << std::endl;
+      }
+  };
+
+  int main() {
+      Buffer a(1);
+      Buffer b(2);
+
+      Buffer c = a;
+      Buffer d = std::move(b);
+
+      return 0;
+  }
+---
+
+Create `c` as a copy of `a`, then `d` by moving from `b` -- in that order. You're not writing any print statements
+yourself; `Buffer`'s constructors already announce which one ran, so the expected output is a direct trace of which
+constructor gets selected for each line.
+
+The distinction is entirely about how you write each initialization, not about `Buffer`'s data: `Buffer c = a;`
+copies because `a` is a plain named variable (an lvalue) sitting on the right of `=`; wrapping `b` in `std::move`
+is what makes the second line resolve to the move constructor instead of the copy constructor it would otherwise
+select.

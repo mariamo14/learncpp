@@ -1,0 +1,83 @@
+---
+title: "Compound Addition"
+lesson: "05-operator-overloading-and-raii/02-operator-overloading"
+order: 4
+difficulty: "hard"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class Point2D {
+  public:
+      double x;
+      double y;
+
+      Point2D(double px, double py) : x(px), y(py) {
+      }
+
+      // TODO: add operator+=(const Point2D &other) that adds other's x
+      // and y into this object's own x and y, in place, and returns a
+      // reference to *this (not a new object, and not void).
+  };
+
+  int main() {
+      double x1, y1, x2, y2;
+      std::cin >> x1 >> y1 >> x2 >> y2;
+      Point2D a(x1, y1);
+      Point2D b(x2, y2);
+      a += b;
+      std::cout << "x = " << a.x << ", y = " << a.y << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: (1,2) += (3,4)"
+    stdin: "1 2 3 4"
+    expectedOutput: "x = 4, y = 6"
+    hidden: false
+  - name: "adding to zero"
+    stdin: "0 0 5 5"
+    expectedOutput: "x = 5, y = 5"
+    hidden: true
+  - name: "cancelling values"
+    stdin: "-1 -1 1 1"
+    expectedOutput: "x = 0, y = 0"
+    hidden: true
+hints:
+  - "Unlike operator+, this modifies the object it's called on directly -- so it can't be const, and it doesn't construct a new Point2D at all."
+  - "Point2D &operator+=(const Point2D &other) {\n    x += other.x;\n    y += other.y;\n    return *this;\n}"
+solution: |
+  #include <iostream>
+
+  class Point2D {
+  public:
+      double x;
+      double y;
+
+      Point2D(double px, double py) : x(px), y(py) {
+      }
+
+      Point2D &operator+=(const Point2D &other) {
+          x += other.x;
+          y += other.y;
+          return *this;
+      }
+  };
+
+  int main() {
+      double x1, y1, x2, y2;
+      std::cin >> x1 >> y1 >> x2 >> y2;
+      Point2D a(x1, y1);
+      Point2D b(x2, y2);
+      a += b;
+      std::cout << "x = " << a.x << ", y = " << a.y << std::endl;
+      return 0;
+  }
+---
+
+Add `operator+=`, `operator+`'s compound cousin: instead of producing a new `Point2D`, it modifies `x` and `y` in
+place and returns a reference to the same object it just changed.
+
+Two details the lesson calls out as easy to get wrong: the return type is `Point2D &` (a reference to `*this`),
+not `Point2D` (a new copy) and not `void` -- returning the wrong one compiles without complaint but breaks
+chaining and wastes a copy, so it's worth writing `return *this;` as a fixed habit for every compound-assignment
+operator you write from here on.

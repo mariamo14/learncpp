@@ -1,0 +1,108 @@
+---
+title: "Cleanup on Early Return"
+lesson: "05-operator-overloading-and-raii/04-rule-of-three-and-raii"
+order: 3
+difficulty: "medium"
+language: "cpp"
+starter: |
+  #include <iostream>
+  #include <string>
+
+  class Guard {
+  public:
+      std::string name;
+
+      Guard(std::string n) : name(n) {
+          std::cout << "Acquired: " << name << std::endl;
+      }
+
+      ~Guard() {
+          std::cout << "Released: " << name << std::endl;
+      }
+  };
+
+  void process(int value) {
+      Guard g("resource");
+
+      // TODO: if value is negative, print exactly "Invalid value" and
+      // return immediately -- before the line below runs. Otherwise,
+      // fall through to it normally.
+      std::cout << "Processing: " << value << std::endl;
+  }
+
+  int main() {
+      int n;
+      std::cin >> n;
+      process(n);
+      return 0;
+  }
+tests:
+  - name: "sample: valid value"
+    stdin: "5"
+    expectedOutput: |
+      Acquired: resource
+      Processing: 5
+      Released: resource
+    hidden: false
+  - name: "negative -- early return"
+    stdin: "-3"
+    expectedOutput: |
+      Acquired: resource
+      Invalid value
+      Released: resource
+    hidden: true
+  - name: "zero is not negative"
+    stdin: "0"
+    expectedOutput: |
+      Acquired: resource
+      Processing: 0
+      Released: resource
+    hidden: true
+hints:
+  - "if (value < 0) { std::cout << \"Invalid value\" << std::endl; return; } -- an ordinary early return, nothing special about it."
+  - "Look closely at the expected output for the negative case: 'Released: resource' still appears, after 'Invalid value', even though the function returned early. You don't need to do anything to make that happen -- g's destructor runs automatically no matter which path out of process is taken."
+solution: |
+  #include <iostream>
+  #include <string>
+
+  class Guard {
+  public:
+      std::string name;
+
+      Guard(std::string n) : name(n) {
+          std::cout << "Acquired: " << name << std::endl;
+      }
+
+      ~Guard() {
+          std::cout << "Released: " << name << std::endl;
+      }
+  };
+
+  void process(int value) {
+      Guard g("resource");
+
+      if (value < 0) {
+          std::cout << "Invalid value" << std::endl;
+          return;
+      }
+      std::cout << "Processing: " << value << std::endl;
+  }
+
+  int main() {
+      int n;
+      std::cin >> n;
+      process(n);
+      return 0;
+  }
+---
+
+Add an ordinary early return to `process`: if `value` is negative, print `Invalid value` and return before
+reaching the `Processing:` line. There's nothing unusual about the `if` itself -- the point of this exercise is
+what happens *around* it.
+
+Look at the expected output for a negative input: `Released: resource` still prints, in both cases, in the same
+relative position (right before the function actually exits) -- whether `process` falls all the way through to the
+bottom or exits early through your new `return`. That's RAII's actual guarantee made visible: `g`'s destructor is
+tied to `g` going out of scope, not to any particular line of code reaching the bottom of the function. You don't
+write anything to make `Released: resource` appear in the early-return case -- it already does, for free, the
+moment `g`'s scope ends.

@@ -1,0 +1,117 @@
+---
+title: "The Rule of Three (and Five) & RAII"
+module: "05-operator-overloading-and-raii"
+order: 4
+summary: "Why a destructor, copy constructor, and copy assignment operator almost always travel together -- and the resource-safety idiom that's been the point of all three lessons so far."
+example:
+  language: cpp
+  stdin: ""
+  code: |
+    #include <iostream>
+
+    class Buffer {
+    public:
+        Buffer(int n) : data(new int[n]), size(n) {
+        }
+
+        Buffer(const Buffer &other) : data(new int[other.size]), size(other.size) {
+            for (int i = 0; i < size; i++) {
+                data[i] = other.data[i];
+            }
+        }
+
+        Buffer &operator=(const Buffer &other) {
+            if (this == &other) {
+                return *this;
+            }
+            delete[] data;
+            data = new int[other.size];
+            size = other.size;
+            for (int i = 0; i < size; i++) {
+                data[i] = other.data[i];
+            }
+            return *this;
+        }
+
+        ~Buffer() {
+            delete[] data;
+        }
+
+        int *data;
+        int size;
+    };
+
+    int main() {
+        Buffer a(3);
+        Buffer b = a;
+        Buffer c(1);
+        c = a;
+
+        std::cout << "all copies independent, all memory freed correctly" << std::endl;
+        return 0;
+    }
+---
+
+## Why this matters
+
+The last lesson fixed `Buffer`'s copy constructor, then its copy assignment operator, one at a time, in isolation.
+This lesson names the principle that made both fixes necessary at once: the **Rule of Three**. It's not a new
+technique -- it's a statement about *when* the tools from the last lesson are needed, and it explains why they
+never show up alone.
+
+## The Rule of Three
+
+**If a class needs a custom destructor, it almost certainly needs a custom copy constructor and copy assignment
+operator too -- and vice versa.**
+
+The reasoning connects directly to what you already know: a class needs a custom **destructor** specifically
+because it owns a resource that isn't cleaned up automatically -- `Buffer`'s `delete[] data;` exists because
+`data` is a raw pointer, and nothing frees it on its own. But that exact same fact -- `data` is a raw pointer --
+is precisely why the *default*, compiler-generated copy constructor and copy assignment operator are wrong: they
+copy the pointer's address, not what it points to, which is the shallow-copy bug from the last lesson. **The same
+property of a class (owning a resource through a raw handle) breaks all three defaults simultaneously.** If you
+find yourself writing a destructor, stop and ask whether you also need the other two -- the answer is almost
+always yes.
+
+The reverse holds too, and it's just as important: `Point2D`, holding two plain `double`s, needs **none** of the
+three. Its default destructor (do nothing, `double`s clean themselves up) is correct; its default copy constructor
+and assignment (copy each `double`'s value) are correct. Writing your own versions for a class like `Point2D`
+would be redundant work reproducing exactly what the compiler already does. The rule isn't "always write all
+three" -- it's "these three are a package deal: decide about all of them together, based on whether your class
+owns a resource a raw member can't clean up on its own."
+
+## RAII: tying a resource's lifetime to an object's lifetime
+
+**RAII** ("Resource Acquisition Is Initialization") is the name for the pattern all three lessons in this module
+have been building toward: acquire a resource in the constructor, release it in the destructor, and let the
+language's own object-lifetime rules -- automatic, deterministic, covered all the way back in Module 2's stack
+rules and Module 4's destructor timing -- guarantee the release actually happens. `Buffer` *is* an RAII class: as
+long as every copy is a real, independent deep copy (which is exactly what the Rule of Three ensures), a `Buffer`
+object can never outlive its own array or leak it, no matter how it's created, copied, or goes out of scope.
+
+This matters beyond tidiness: a function can have many different exit points -- an early `return`, several nested
+scopes ending at different points, in some languages an exception unwinding through multiple frames at once.
+Manually calling a cleanup function at *every* one of those points is easy to get wrong; a destructor runs
+automatically at *all* of them, because it's tied to the object's lifetime rather than to any specific line of
+code remembering to call it.
+
+## The Rule of Five: move operations join the package
+
+C++11 added two more special member functions -- the **move constructor** and **move assignment operator** -- and
+extended the rule accordingly: if your class needs the original three, it can very likely also benefit from these
+two, for a reason the next lesson covers in full: copying `Buffer` always allocates and copies an entire array,
+even in situations where the original `Buffer` was about to be discarded anyway and its array could simply have
+been *taken* instead of duplicated. That's what moving means, and it's pure performance -- correctness doesn't
+require it (a class with only the Rule of Three is still completely correct, just sometimes slower than it needs
+to be).
+
+## A preview worth having in mind: the Rule of Zero
+
+One more idea worth knowing exists, even before you have the tools to use it (Module 8 and Module 9 bring them):
+the *best* resource-owning classes often implement **zero** of these five functions themselves, by holding their
+resource through an existing type that already implements the Rule of Five correctly -- a `std::string`, a
+`std::vector`, or a smart pointer, all covered later in this course -- as a plain member, rather than a raw
+pointer. Copying, moving, and destroying the outer class then happens automatically, correctly, by copying,
+moving, and destroying that member. `Buffer`, written using a raw `int *`, is this module's deliberate way of
+seeing *why* the rule exists at all, one manual step at a time -- in your own code going forward, prefer reaching
+for an existing RAII-managed type over a raw owning pointer whenever one fits.

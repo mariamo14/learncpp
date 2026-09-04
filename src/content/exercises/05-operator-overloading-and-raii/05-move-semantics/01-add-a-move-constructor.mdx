@@ -1,0 +1,110 @@
+---
+title: "Add a Move Constructor"
+lesson: "05-operator-overloading-and-raii/05-move-semantics"
+order: 1
+difficulty: "easy"
+language: "cpp"
+starter: |
+  #include <iostream>
+  #include <utility>
+
+  class Buffer {
+  public:
+      int *data;
+      int size;
+
+      Buffer(int n) : data(new int[n]), size(n) {
+          for (int i = 0; i < n; i++) {
+              data[i] = i;
+          }
+      }
+
+      // TODO: add a move constructor: Buffer(Buffer &&other) noexcept.
+      // Steal other's data and size directly -- no new[], no copying
+      // elements -- then leave other in a safely-destructible state:
+      // set other.data to nullptr and other.size to 0.
+
+      ~Buffer() {
+          delete[] data;
+      }
+  };
+
+  int main() {
+      int n;
+      std::cin >> n;
+      Buffer a(n);
+      int *originalPtr = a.data;
+
+      Buffer b = std::move(a);
+
+      std::cout << "b.data == original pointer? " << (b.data == originalPtr) << std::endl;
+      std::cout << "a.data == nullptr? " << (a.data == nullptr) << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: n=5"
+    stdin: "5"
+    expectedOutput: |
+      b.data == original pointer? 1
+      a.data == nullptr? 1
+    hidden: false
+  - name: "single element"
+    stdin: "1"
+    expectedOutput: |
+      b.data == original pointer? 1
+      a.data == nullptr? 1
+    hidden: true
+  - name: "larger buffer"
+    stdin: "10"
+    expectedOutput: |
+      b.data == original pointer? 1
+      a.data == nullptr? 1
+    hidden: true
+hints:
+  - "This is a much smaller function than the copy constructor -- no new[], no loop. Just copy the two member values directly, then reset other's."
+  - "Buffer(Buffer &&other) noexcept : data(other.data), size(other.size) {\n    other.data = nullptr;\n    other.size = 0;\n}"
+solution: |
+  #include <iostream>
+  #include <utility>
+
+  class Buffer {
+  public:
+      int *data;
+      int size;
+
+      Buffer(int n) : data(new int[n]), size(n) {
+          for (int i = 0; i < n; i++) {
+              data[i] = i;
+          }
+      }
+
+      Buffer(Buffer &&other) noexcept : data(other.data), size(other.size) {
+          other.data = nullptr;
+          other.size = 0;
+      }
+
+      ~Buffer() {
+          delete[] data;
+      }
+  };
+
+  int main() {
+      int n;
+      std::cin >> n;
+      Buffer a(n);
+      int *originalPtr = a.data;
+
+      Buffer b = std::move(a);
+
+      std::cout << "b.data == original pointer? " << (b.data == originalPtr) << std::endl;
+      std::cout << "a.data == nullptr? " << (a.data == nullptr) << std::endl;
+      return 0;
+  }
+---
+
+`std::move(a)` makes `Buffer b = std::move(a);` select the move constructor instead of the copy constructor --
+your job is to make that constructor actually steal, not duplicate.
+
+If your move constructor is missing or wrong (say, it still allocates a fresh array and copies, like a copy
+constructor would), `b.data` will be a *different* address from `a`'s original pointer, and `a.data` will still
+hold its original, non-null value -- both checks in `main` exist specifically to catch that.

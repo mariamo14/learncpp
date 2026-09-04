@@ -1,0 +1,90 @@
+---
+title: "Namespaces"
+module: "05-operator-overloading-and-raii"
+order: 1
+summary: "The general mechanism behind the std:: you've been writing since Module 4 -- and the tool real C++ projects use to let the same name mean different things in different parts of a program."
+example:
+  language: cpp
+  stdin: ""
+  code: |
+    #include <iostream>
+
+    namespace finance {
+        double applyRate(double principal, double rate) {
+            return principal * rate;
+        }
+    }
+
+    namespace physics {
+        double applyRate(double distance, double rate) {
+            return distance * rate;
+        }
+    }
+
+    int main() {
+        std::cout << finance::applyRate(1000.0, 0.05) << std::endl;
+        std::cout << physics::applyRate(10.0, 2.0) << std::endl;
+        return 0;
+    }
+---
+
+## Why this matters
+
+Module 3 established that two functions can't share a name at global scope -- that's the "redefinition" error.
+Module 4 relaxed that slightly with overloading, but only when the parameter *types* differ. What about two
+genuinely different functions that both want the same name, with the same parameter types, because that name is
+the most natural one in two unrelated contexts? The worked example has exactly this: two completely different
+`applyRate` functions -- one financial, one physical -- both taking two `double`s. A **namespace** is how C++
+lets both exist, by giving each one a qualified home.
+
+## Declaring and using a namespace
+
+```cpp
+namespace finance {
+    double applyRate(double principal, double rate) {
+        return principal * rate;
+    }
+}
+```
+
+Anything declared inside `namespace finance { ... }` belongs to that namespace, and from outside it, you reach it
+with `::` -- the **scope resolution operator** you've been writing since Module 1's very first exercises, every
+time you wrote `std::cout` or `std::cin`. That's not special syntax reserved for the standard library: `std` is
+just a namespace, exactly like `finance` and `physics` above, containing everything the standard library
+provides. `finance::applyRate(...)` means precisely what it looks like: "the `applyRate` that lives in `finance`."
+
+## Why not just pick different function names instead?
+
+You could -- `financeApplyRate` and `physicsApplyRate` would avoid the collision too. Namespaces do something
+different from a naming convention, though: `finance::applyRate` and `physics::applyRate` don't just avoid
+colliding with *each other*, they avoid colliding with an `applyRate` written by anyone else's code entirely,
+without you needing to know that code exists or coordinate a name with it. This is the real reason namespaces
+matter at scale: a large project assembled from many pieces (your own code, several libraries) can't realistically
+guarantee every author picked a globally unique name for every function -- namespaces let each piece use natural,
+short names internally, with collisions prevented by the namespace itself rather than by convention.
+
+## `using` declarations vs. `using` directives
+
+You've written `std::` explicitly in every example so far. There's a shortcut, `using`, with two very different
+strengths:
+
+```cpp
+using std::cout;         // a using DECLARATION: import just this one name
+using namespace std;     // a using DIRECTIVE: import EVERY name from std
+```
+
+A `using` declaration brings in exactly one name, and you can see at the top of a file precisely which ones a file
+relies on. A `using` directive brings in *everything* from a namespace at once -- convenient to type, but it
+recreates the exact collision risk namespaces exist to prevent: two `using namespace` directives from different
+libraries, or one such directive plus a name you define yourself, can collide in ways that are hard to trace back.
+This course has spelled out `std::` explicitly everywhere specifically to avoid that risk -- a deliberate choice,
+not an oversight, and the one this course recommends you keep making in your own code.
+
+## Namespaces vs. `static`: two different tools for a similar-sounding goal
+
+Module 3 covered `static` at file scope, making a name invisible to every other file entirely. A namespace does
+something different: it doesn't hide a name, it *qualifies* it. `finance::applyRate` is still fully accessible
+from anywhere that includes its declaration -- it just needs its namespace prefix to reach it, rather than being
+unreachable outside one file the way a `static` function is. Reach for `static` when something should never be
+visible outside the file it's defined in at all; reach for a namespace when something should be visible and usable
+everywhere, just under a name that won't collide with anyone else's.

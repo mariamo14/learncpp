@@ -1,0 +1,127 @@
+---
+title: "A Complete RAII Message Class"
+lesson: "05-operator-overloading-and-raii/04-rule-of-three-and-raii"
+order: 1
+difficulty: "medium"
+language: "cpp"
+starter: |
+  #include <iostream>
+  #include <string>
+  #include <cstring>
+
+  class Message {
+  public:
+      char *text;
+
+      Message(const std::string &s) {
+          text = new char[s.length() + 1];
+          strcpy(text, s.c_str());
+      }
+
+      // TODO: Message owns a raw resource (text), so per the Rule of
+      // Three it needs all of the following, together -- add all three:
+      //   ~Message()                          -- delete[] text
+      //   Message(const Message &other)       -- deep copy, new + strcpy
+      //   operator=(const Message &other)     -- self-check, deep copy
+  };
+
+  int main() {
+      std::string s;
+      std::cin >> s;
+      Message a(s);
+      Message b = a;
+      Message c(std::string("placeholder"));
+      c = a;
+
+      b.text[0] = 'X';
+
+      std::cout << "a.text = " << a.text << std::endl;
+      std::cout << "b.text = " << b.text << std::endl;
+      std::cout << "c.text = " << c.text << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: hello"
+    stdin: "hello"
+    expectedOutput: |
+      a.text = hello
+      b.text = Xello
+      c.text = hello
+    hidden: false
+  - name: "shorter word"
+    stdin: "cat"
+    expectedOutput: |
+      a.text = cat
+      b.text = Xat
+      c.text = cat
+    hidden: true
+  - name: "two characters"
+    stdin: "ok"
+    expectedOutput: |
+      a.text = ok
+      b.text = Xk
+      c.text = ok
+    hidden: true
+hints:
+  - "This is the same three functions as the last lesson's Buffer, applied to a char* instead of an int*: strlen(other.text) tells you how many characters to allocate room for (plus one, for the null terminator), and strcpy copies them (including the terminator) in one call."
+  - "~Message() { delete[] text; }\nMessage(const Message &other) { text = new char[strlen(other.text) + 1]; strcpy(text, other.text); }\nMessage &operator=(const Message &other) { if (this == &other) return *this; delete[] text; text = new char[strlen(other.text) + 1]; strcpy(text, other.text); return *this; }"
+solution: |
+  #include <iostream>
+  #include <string>
+  #include <cstring>
+
+  class Message {
+  public:
+      char *text;
+
+      Message(const std::string &s) {
+          text = new char[s.length() + 1];
+          strcpy(text, s.c_str());
+      }
+
+      ~Message() {
+          delete[] text;
+      }
+
+      Message(const Message &other) {
+          text = new char[strlen(other.text) + 1];
+          strcpy(text, other.text);
+      }
+
+      Message &operator=(const Message &other) {
+          if (this == &other) {
+              return *this;
+          }
+          delete[] text;
+          text = new char[strlen(other.text) + 1];
+          strcpy(text, other.text);
+          return *this;
+      }
+  };
+
+  int main() {
+      std::string s;
+      std::cin >> s;
+      Message a(s);
+      Message b = a;
+      Message c(std::string("placeholder"));
+      c = a;
+
+      b.text[0] = 'X';
+
+      std::cout << "a.text = " << a.text << std::endl;
+      std::cout << "b.text = " << b.text << std::endl;
+      std::cout << "c.text = " << c.text << std::endl;
+      return 0;
+  }
+---
+
+`Message` owns a `char *` -- a raw, manually-managed C-string, deliberately built the Module-2 way rather than
+with `std::string`, so the Rule of Three genuinely applies. Add the destructor, copy constructor, and copy
+assignment operator **together**, as one unit -- exactly the lesson's point, not three separate problems to solve
+independently.
+
+`main` exercises all three at once: `b` is created via the copy constructor, `c` is overwritten via copy
+assignment, and every object is destroyed at the end whether it's `main`'s implicit return or the program simply
+ending -- if any one of the three is wrong or missing, expect either wrong output (a mutation through `b` leaking
+into `a` or `c`) or a crash.

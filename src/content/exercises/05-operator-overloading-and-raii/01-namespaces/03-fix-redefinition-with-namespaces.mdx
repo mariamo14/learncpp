@@ -1,0 +1,72 @@
+---
+title: "Fix: Redefinition, with Namespaces"
+lesson: "05-operator-overloading-and-raii/01-namespaces"
+order: 3
+difficulty: "hard"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  double convert(double value) {
+      return value * 2.20462;
+  }
+
+  double convert(double value) {
+      return value * 1.60934;
+  }
+
+  int main() {
+      double kg, miles;
+      std::cin >> kg >> miles;
+      std::cout << "pounds: " << convert(kg) << std::endl;
+      std::cout << "km: " << convert(miles) << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: 10 kg, 5 miles"
+    stdin: "10 5"
+    expectedOutput: |
+      pounds: 22.0462
+      km: 8.0467
+    hidden: false
+  - name: "zero"
+    stdin: "0 0"
+    expectedOutput: |
+      pounds: 0
+      km: 0
+    hidden: true
+hints:
+  - "Submit as-is and read the error -- 'redefinition of convert' -- this is not an overloading situation like Module 4's, because both versions take exactly the same parameter type (double). Overload resolution has nothing to distinguish them by; the compiler just sees the same function written twice."
+  - "Wrap each convert in its own namespace (e.g. weight and distance), then update the two call sites in main to use the qualified names: weight::convert(kg) and distance::convert(miles)."
+solution: |
+  #include <iostream>
+
+  namespace weight {
+      double convert(double value) {
+          return value * 2.20462;
+      }
+  }
+
+  namespace distance {
+      double convert(double value) {
+          return value * 1.60934;
+      }
+  }
+
+  int main() {
+      double kg, miles;
+      std::cin >> kg >> miles;
+      std::cout << "pounds: " << weight::convert(kg) << std::endl;
+      std::cout << "km: " << distance::convert(miles) << std::endl;
+      return 0;
+  }
+---
+
+This has two functions named `convert`, both taking a single `double` -- and unlike Module 4's overloading
+exercises, identical parameter types mean the compiler has no way to tell them apart. Submit as-is and read the
+"redefinition of `convert`" error before changing anything -- this is the exact class of error from Module 3,
+except this time the fix isn't merging duplicate logic, it's separating two functions that were never actually
+duplicates, just unluckily same-named.
+
+Wrap each version of `convert` in its own namespace (`weight` and `distance` are reasonable names, but any pair
+of distinct names works), and update the two call sites in `main` to qualify each call appropriately.

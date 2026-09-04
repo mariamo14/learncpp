@@ -1,0 +1,133 @@
+---
+title: "Copy Assignment Between Objects"
+lesson: "05-operator-overloading-and-raii/03-copy-semantics"
+order: 2
+difficulty: "medium"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class Buffer {
+  public:
+      int *data;
+      int size;
+
+      Buffer(int n) : data(new int[n]), size(n) {
+          for (int i = 0; i < n; i++) {
+              data[i] = i;
+          }
+      }
+
+      Buffer(const Buffer &other) : data(new int[other.size]), size(other.size) {
+          for (int i = 0; i < size; i++) {
+              data[i] = other.data[i];
+          }
+      }
+
+      // TODO: add a copy assignment operator. Release this object's
+      // current data, then allocate a new array matching other's size
+      // and copy other's contents into it, then update size, then
+      // return *this.
+
+      ~Buffer() {
+          delete[] data;
+      }
+  };
+
+  int main() {
+      int n1, n2;
+      std::cin >> n1 >> n2;
+      Buffer a(n1);
+      Buffer b(n2);
+
+      b = a;
+      b.data[0] = 999;
+
+      std::cout << "a.data[0] = " << a.data[0] << std::endl;
+      std::cout << "b.size = " << b.size << std::endl;
+      std::cout << "b.data[0] = " << b.data[0] << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: sizes 3 and 5"
+    stdin: "3 5"
+    expectedOutput: |
+      a.data[0] = 0
+      b.size = 3
+      b.data[0] = 999
+    hidden: false
+  - name: "matching sizes"
+    stdin: "1 1"
+    expectedOutput: |
+      a.data[0] = 0
+      b.size = 1
+      b.data[0] = 999
+    hidden: true
+  - name: "b starts larger than a"
+    stdin: "4 2"
+    expectedOutput: |
+      a.data[0] = 0
+      b.size = 4
+      b.data[0] = 999
+    hidden: true
+hints:
+  - "b already owns a size-n2 array before b = a runs -- you have to release that first (delete[] data;), or it leaks, before allocating the new size-other.size array."
+  - "Buffer &operator=(const Buffer &other) {\n    delete[] data;\n    data = new int[other.size];\n    size = other.size;\n    for (int i = 0; i < size; i++) {\n        data[i] = other.data[i];\n    }\n    return *this;\n}"
+solution: |
+  #include <iostream>
+
+  class Buffer {
+  public:
+      int *data;
+      int size;
+
+      Buffer(int n) : data(new int[n]), size(n) {
+          for (int i = 0; i < n; i++) {
+              data[i] = i;
+          }
+      }
+
+      Buffer(const Buffer &other) : data(new int[other.size]), size(other.size) {
+          for (int i = 0; i < size; i++) {
+              data[i] = other.data[i];
+          }
+      }
+
+      Buffer &operator=(const Buffer &other) {
+          delete[] data;
+          data = new int[other.size];
+          size = other.size;
+          for (int i = 0; i < size; i++) {
+              data[i] = other.data[i];
+          }
+          return *this;
+      }
+
+      ~Buffer() {
+          delete[] data;
+      }
+  };
+
+  int main() {
+      int n1, n2;
+      std::cin >> n1 >> n2;
+      Buffer a(n1);
+      Buffer b(n2);
+
+      b = a;
+      b.data[0] = 999;
+
+      std::cout << "a.data[0] = " << a.data[0] << std::endl;
+      std::cout << "b.size = " << b.size << std::endl;
+      std::cout << "b.data[0] = " << b.data[0] << std::endl;
+      return 0;
+  }
+---
+
+`a` and `b` are two already-existing `Buffer`s of possibly different sizes -- `b = a;` needs to make `b` an
+independent deep copy of `a`, resizing `b`'s array to match `a`'s in the process. This is genuinely different work
+from the copy constructor: `b` already owns memory from its own constructor, and that memory has to be released
+before `b` can take on `a`'s size and contents, or the original allocation simply leaks.
+
+This exercise doesn't require a self-assignment guard (`a` and `b` are always distinct objects here) -- the next
+exercise covers exactly that case on its own.

@@ -1,0 +1,107 @@
+---
+title: "Deep Copy Constructor"
+lesson: "05-operator-overloading-and-raii/03-copy-semantics"
+order: 1
+difficulty: "easy"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class Buffer {
+  public:
+      int *data;
+      int size;
+
+      Buffer(int n) : data(new int[n]), size(n) {
+          for (int i = 0; i < n; i++) {
+              data[i] = i;
+          }
+      }
+
+      // TODO: add a copy constructor that performs a deep copy --
+      // allocate a new array of other.size ints and copy each
+      // element, rather than copying the pointer itself.
+
+      ~Buffer() {
+          delete[] data;
+      }
+  };
+
+  int main() {
+      int n;
+      std::cin >> n;
+      Buffer a(n);
+      Buffer b = a;
+
+      b.data[0] = 999;
+
+      std::cout << "a.data[0] = " << a.data[0] << std::endl;
+      std::cout << "b.data[0] = " << b.data[0] << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: n=3"
+    stdin: "3"
+    expectedOutput: |
+      a.data[0] = 0
+      b.data[0] = 999
+    hidden: false
+  - name: "single element"
+    stdin: "1"
+    expectedOutput: |
+      a.data[0] = 0
+      b.data[0] = 999
+    hidden: true
+  - name: "larger buffer"
+    stdin: "5"
+    expectedOutput: |
+      a.data[0] = 0
+      b.data[0] = 999
+    hidden: true
+hints:
+  - "Without a copy constructor you write yourself, C++ generates one that copies the data pointer directly -- meaning a.data and b.data end up pointing at the exact same array, so changing b.data[0] would also change a.data[0]. Your version needs its own new[] allocation."
+  - "Buffer(const Buffer &other) : data(new int[other.size]), size(other.size) {\n    for (int i = 0; i < size; i++) {\n        data[i] = other.data[i];\n    }\n}"
+solution: |
+  #include <iostream>
+
+  class Buffer {
+  public:
+      int *data;
+      int size;
+
+      Buffer(int n) : data(new int[n]), size(n) {
+          for (int i = 0; i < n; i++) {
+              data[i] = i;
+          }
+      }
+
+      Buffer(const Buffer &other) : data(new int[other.size]), size(other.size) {
+          for (int i = 0; i < size; i++) {
+              data[i] = other.data[i];
+          }
+      }
+
+      ~Buffer() {
+          delete[] data;
+      }
+  };
+
+  int main() {
+      int n;
+      std::cin >> n;
+      Buffer a(n);
+      Buffer b = a;
+
+      b.data[0] = 999;
+
+      std::cout << "a.data[0] = " << a.data[0] << std::endl;
+      std::cout << "b.data[0] = " << b.data[0] << std::endl;
+      return 0;
+  }
+---
+
+Add a deep-copy copy constructor to `Buffer`. `main` creates `b` as a copy of `a`, then modifies `b.data[0]` --
+with a correct deep copy, that change should be completely invisible to `a`, since they now own two entirely
+separate arrays with (initially) equal contents.
+
+If `a.data[0]` also ends up `999` in your output, the copy is shallow -- both objects are still sharing one array.

@@ -1,0 +1,142 @@
+---
+title: "Self-Assignment Safety"
+lesson: "05-operator-overloading-and-raii/03-copy-semantics"
+order: 3
+difficulty: "hard"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class Buffer {
+  public:
+      int *data;
+      int size;
+
+      Buffer(int n) : data(new int[n]), size(n) {
+          for (int i = 0; i < n; i++) {
+              data[i] = i;
+          }
+      }
+
+      Buffer(const Buffer &other) : data(new int[other.size]), size(other.size) {
+          for (int i = 0; i < size; i++) {
+              data[i] = other.data[i];
+          }
+      }
+
+      Buffer &operator=(const Buffer &other) {
+          // TODO: guard against self-assignment first -- if this
+          // object and other are the same object, return *this
+          // immediately without touching data at all. Then do the
+          // usual deep-copy assignment below.
+          delete[] data;
+          data = new int[other.size];
+          size = other.size;
+          for (int i = 0; i < size; i++) {
+              data[i] = other.data[i];
+          }
+          return *this;
+      }
+
+      ~Buffer() {
+          delete[] data;
+      }
+  };
+
+  int main() {
+      int n;
+      std::cin >> n;
+      Buffer a(n);
+
+      a = a;
+
+      for (int i = 0; i < a.size; i++) {
+          std::cout << a.data[i];
+          if (i < a.size - 1) {
+              std::cout << " ";
+          }
+      }
+      std::cout << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: n=5"
+    stdin: "5"
+    expectedOutput: "0 1 2 3 4"
+    hidden: false
+  - name: "single element"
+    stdin: "1"
+    expectedOutput: "0"
+    hidden: true
+  - name: "n=3"
+    stdin: "3"
+    expectedOutput: "0 1 2"
+    hidden: true
+hints:
+  - "a = a; makes other the exact same object as *this. delete[] data; then destroys the array before other.data (the same pointer) is ever read from -- the copy loop ends up reading from memory that was just freed."
+  - "if (this == &other) {\n    return *this;\n}\nas the very first line of operator=, before anything else runs."
+solution: |
+  #include <iostream>
+
+  class Buffer {
+  public:
+      int *data;
+      int size;
+
+      Buffer(int n) : data(new int[n]), size(n) {
+          for (int i = 0; i < n; i++) {
+              data[i] = i;
+          }
+      }
+
+      Buffer(const Buffer &other) : data(new int[other.size]), size(other.size) {
+          for (int i = 0; i < size; i++) {
+              data[i] = other.data[i];
+          }
+      }
+
+      Buffer &operator=(const Buffer &other) {
+          if (this == &other) {
+              return *this;
+          }
+          delete[] data;
+          data = new int[other.size];
+          size = other.size;
+          for (int i = 0; i < size; i++) {
+              data[i] = other.data[i];
+          }
+          return *this;
+      }
+
+      ~Buffer() {
+          delete[] data;
+      }
+  };
+
+  int main() {
+      int n;
+      std::cin >> n;
+      Buffer a(n);
+
+      a = a;
+
+      for (int i = 0; i < a.size; i++) {
+          std::cout << a.data[i];
+          if (i < a.size - 1) {
+              std::cout << " ";
+          }
+      }
+      std::cout << std::endl;
+      return 0;
+  }
+---
+
+`main` does something that looks pointless -- `a = a;` -- and a correct `operator=` needs to leave `a` completely
+unchanged by it. Without a self-assignment guard, this specific line is actively dangerous: `other` *is* `a`, so
+`delete[] data;` frees the exact array that `other.data` (the same pointer) is about to be read from in the copy
+loop right after -- reading already-freed memory, which is undefined behavior and, in practice, garbage values
+instead of the original `0, 1, 2, ...` sequence.
+
+Add the `this == &other` check as the very first line of `operator=`: if the object being assigned *from* is the
+same object being assigned *to*, there's nothing to do -- return immediately, before the destructive `delete[]`
+ever runs.

@@ -1,0 +1,76 @@
+---
+title: "Vector Addition"
+lesson: "05-operator-overloading-and-raii/02-operator-overloading"
+order: 1
+difficulty: "easy"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class Point2D {
+  public:
+      double x;
+      double y;
+
+      Point2D(double px, double py) : x(px), y(py) {
+      }
+
+      // TODO: add operator+ (member function, const) that returns a
+      // new Point2D whose x and y are the sum of the two points' x's
+      // and y's.
+  };
+
+  int main() {
+      double x1, y1, x2, y2;
+      std::cin >> x1 >> y1 >> x2 >> y2;
+      Point2D a(x1, y1);
+      Point2D b(x2, y2);
+      Point2D c = a + b;
+      std::cout << "x = " << c.x << ", y = " << c.y << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: (1,2) + (3,4)"
+    stdin: "1 2 3 4"
+    expectedOutput: "x = 4, y = 6"
+    hidden: false
+  - name: "zeros"
+    stdin: "0 0 0 0"
+    expectedOutput: "x = 0, y = 0"
+    hidden: true
+  - name: "negative and positive"
+    stdin: "-1 5 2 -3"
+    expectedOutput: "x = 1, y = 2"
+    hidden: true
+hints:
+  - "This is exactly the lesson's Vector2D::operator+ -- same shape, applied to Point2D's members instead."
+  - "Point2D operator+(const Point2D &other) const {\n    return Point2D(x + other.x, y + other.y);\n}"
+solution: |
+  #include <iostream>
+
+  class Point2D {
+  public:
+      double x;
+      double y;
+
+      Point2D(double px, double py) : x(px), y(py) {
+      }
+
+      Point2D operator+(const Point2D &other) const {
+          return Point2D(x + other.x, y + other.y);
+      }
+  };
+
+  int main() {
+      double x1, y1, x2, y2;
+      std::cin >> x1 >> y1 >> x2 >> y2;
+      Point2D a(x1, y1);
+      Point2D b(x2, y2);
+      Point2D c = a + b;
+      std::cout << "x = " << c.x << ", y = " << c.y << std::endl;
+      return 0;
+  }
+---
+
+Add `operator+` to `Point2D` so `a + b` produces a new point whose coordinates are the sum of `a`'s and `b`'s.
+`main` already writes `Point2D c = a + b;` -- your only job is making that expression mean something.

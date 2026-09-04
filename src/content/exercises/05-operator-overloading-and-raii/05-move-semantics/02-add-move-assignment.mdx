@@ -1,0 +1,130 @@
+---
+title: "Add Move Assignment"
+lesson: "05-operator-overloading-and-raii/05-move-semantics"
+order: 2
+difficulty: "medium"
+language: "cpp"
+starter: |
+  #include <iostream>
+  #include <utility>
+
+  class Buffer {
+  public:
+      int *data;
+      int size;
+
+      Buffer(int n) : data(new int[n]), size(n) {
+          for (int i = 0; i < n; i++) {
+              data[i] = i;
+          }
+      }
+
+      Buffer(Buffer &&other) noexcept : data(other.data), size(other.size) {
+          other.data = nullptr;
+          other.size = 0;
+      }
+
+      // TODO: add operator=(Buffer &&other) noexcept -- move
+      // assignment. Guard against self-assignment, release this
+      // object's current data, then steal other's data/size and null
+      // out other -- the same idea as the move constructor, but for
+      // an object that already owns something of its own.
+
+      ~Buffer() {
+          delete[] data;
+      }
+  };
+
+  int main() {
+      int n1, n2;
+      std::cin >> n1 >> n2;
+      Buffer a(n1);
+      Buffer b(n2);
+      int *originalPtr = a.data;
+
+      b = std::move(a);
+
+      std::cout << "b.data == original pointer? " << (b.data == originalPtr) << std::endl;
+      std::cout << "a.data == nullptr? " << (a.data == nullptr) << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: sizes 3 and 5"
+    stdin: "3 5"
+    expectedOutput: |
+      b.data == original pointer? 1
+      a.data == nullptr? 1
+    hidden: false
+  - name: "matching sizes"
+    stdin: "1 1"
+    expectedOutput: |
+      b.data == original pointer? 1
+      a.data == nullptr? 1
+    hidden: true
+  - name: "b starts larger"
+    stdin: "4 2"
+    expectedOutput: |
+      b.data == original pointer? 1
+      a.data == nullptr? 1
+    hidden: true
+hints:
+  - "b already owns its own array before b = std::move(a) runs -- that has to be released (delete[] data;) before stealing a's, exactly like ordinary copy assignment released the old array before deep-copying."
+  - "Buffer &operator=(Buffer &&other) noexcept {\n    if (this == &other) {\n        return *this;\n    }\n    delete[] data;\n    data = other.data;\n    size = other.size;\n    other.data = nullptr;\n    other.size = 0;\n    return *this;\n}"
+solution: |
+  #include <iostream>
+  #include <utility>
+
+  class Buffer {
+  public:
+      int *data;
+      int size;
+
+      Buffer(int n) : data(new int[n]), size(n) {
+          for (int i = 0; i < n; i++) {
+              data[i] = i;
+          }
+      }
+
+      Buffer(Buffer &&other) noexcept : data(other.data), size(other.size) {
+          other.data = nullptr;
+          other.size = 0;
+      }
+
+      Buffer &operator=(Buffer &&other) noexcept {
+          if (this == &other) {
+              return *this;
+          }
+          delete[] data;
+          data = other.data;
+          size = other.size;
+          other.data = nullptr;
+          other.size = 0;
+          return *this;
+      }
+
+      ~Buffer() {
+          delete[] data;
+      }
+  };
+
+  int main() {
+      int n1, n2;
+      std::cin >> n1 >> n2;
+      Buffer a(n1);
+      Buffer b(n2);
+      int *originalPtr = a.data;
+
+      b = std::move(a);
+
+      std::cout << "b.data == original pointer? " << (b.data == originalPtr) << std::endl;
+      std::cout << "a.data == nullptr? " << (a.data == nullptr) << std::endl;
+      return 0;
+  }
+---
+
+`b` already owns its own array (from its own constructor call) before `b = std::move(a);` runs -- move assignment
+combines both halves you've already written separately: release what `b` currently owns (like ordinary copy
+assignment), then steal `a`'s pointer directly instead of copying it (like the move constructor).
+
+Note the self-assignment guard is still worth keeping even here: `x = std::move(x);` is unusual but not illegal,
+and the same reasoning from the copy-assignment lesson applies -- check first, before doing anything destructive.

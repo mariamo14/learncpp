@@ -1,0 +1,57 @@
+---
+title: "Square Area"
+lesson: "05-operator-overloading-and-raii/01-namespaces"
+order: 1
+difficulty: "easy"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  namespace geometry {
+      // TODO: define double squareArea(double side), returning side * side.
+  }
+
+  int main() {
+      double side;
+      std::cin >> side;
+      std::cout << "Area: " << geometry::squareArea(side) << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: 4"
+    stdin: "4"
+    expectedOutput: "Area: 16"
+    hidden: false
+  - name: "zero"
+    stdin: "0"
+    expectedOutput: "Area: 0"
+    hidden: true
+  - name: "fractional"
+    stdin: "2.5"
+    expectedOutput: "Area: 6.25"
+    hidden: true
+hints:
+  - "The function goes entirely inside the namespace's braces -- same as any ordinary function definition, just nested one level deeper."
+  - "double squareArea(double side) {\n    return side * side;\n}"
+solution: |
+  #include <iostream>
+
+  namespace geometry {
+      double squareArea(double side) {
+          return side * side;
+      }
+  }
+
+  int main() {
+      double side;
+      std::cin >> side;
+      std::cout << "Area: " << geometry::squareArea(side) << std::endl;
+      return 0;
+  }
+---
+
+Define `squareArea` inside the `geometry` namespace, so that `geometry::squareArea(side)` -- already called in
+`main` -- computes `side * side`.
+
+This is the smallest possible namespace: one function, called through its qualified name, exactly the same
+pattern as `std::cout` you've been writing all along.

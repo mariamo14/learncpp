@@ -1,0 +1,132 @@
+---
+title: "Fix: Missing Copy Assignment"
+lesson: "05-operator-overloading-and-raii/04-rule-of-three-and-raii"
+order: 2
+difficulty: "hard"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class Buffer {
+  public:
+      int *data;
+      int size;
+
+      Buffer(int n) : data(new int[n]), size(n) {
+          for (int i = 0; i < n; i++) {
+              data[i] = i;
+          }
+      }
+
+      Buffer(const Buffer &other) : data(new int[other.size]), size(other.size) {
+          for (int i = 0; i < size; i++) {
+              data[i] = other.data[i];
+          }
+      }
+
+      // TODO: this class has a correct destructor and a correct copy
+      // constructor -- but no copy assignment operator, so the
+      // compiler-generated default (a shallow copy) is silently being
+      // used instead. Add a correct one.
+
+      ~Buffer() {
+          delete[] data;
+      }
+  };
+
+  int main() {
+      int n1, n2;
+      std::cin >> n1 >> n2;
+      Buffer a(n1);
+      Buffer b(n2);
+
+      b = a;
+      b.data[0] = 999;
+
+      std::cout << "a.data[0] = " << a.data[0] << std::endl;
+      std::cout << "b.data[0] = " << b.data[0] << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: sizes 3 and 5"
+    stdin: "3 5"
+    expectedOutput: |
+      a.data[0] = 0
+      b.data[0] = 999
+    hidden: false
+  - name: "matching sizes"
+    stdin: "2 2"
+    expectedOutput: |
+      a.data[0] = 0
+      b.data[0] = 999
+    hidden: true
+  - name: "b starts larger"
+    stdin: "1 4"
+    expectedOutput: |
+      a.data[0] = 0
+      b.data[0] = 999
+    hidden: true
+hints:
+  - "This class already gets two of the three right -- that's exactly the trap the Rule of Three warns about: having a correct destructor and copy constructor doesn't help if operator= is still the default shallow-copy version."
+  - "Buffer &operator=(const Buffer &other) {\n    if (this == &other) {\n        return *this;\n    }\n    delete[] data;\n    data = new int[other.size];\n    size = other.size;\n    for (int i = 0; i < size; i++) {\n        data[i] = other.data[i];\n    }\n    return *this;\n}"
+solution: |
+  #include <iostream>
+
+  class Buffer {
+  public:
+      int *data;
+      int size;
+
+      Buffer(int n) : data(new int[n]), size(n) {
+          for (int i = 0; i < n; i++) {
+              data[i] = i;
+          }
+      }
+
+      Buffer(const Buffer &other) : data(new int[other.size]), size(other.size) {
+          for (int i = 0; i < size; i++) {
+              data[i] = other.data[i];
+          }
+      }
+
+      Buffer &operator=(const Buffer &other) {
+          if (this == &other) {
+              return *this;
+          }
+          delete[] data;
+          data = new int[other.size];
+          size = other.size;
+          for (int i = 0; i < size; i++) {
+              data[i] = other.data[i];
+          }
+          return *this;
+      }
+
+      ~Buffer() {
+          delete[] data;
+      }
+  };
+
+  int main() {
+      int n1, n2;
+      std::cin >> n1 >> n2;
+      Buffer a(n1);
+      Buffer b(n2);
+
+      b = a;
+      b.data[0] = 999;
+
+      std::cout << "a.data[0] = " << a.data[0] << std::endl;
+      std::cout << "b.data[0] = " << b.data[0] << std::endl;
+      return 0;
+  }
+---
+
+This `Buffer` looks well-written -- a correct destructor, a correct copy constructor -- and it's still buggy. Run
+it as-is: `b = a;` uses the compiler-generated default copy assignment operator, since none was written, and that
+default is the same shallow copy from two lessons ago. `a.data[0]` ends up `999` even though only `b.data[0]` was
+ever assigned to.
+
+This is the Rule of Three's real failure mode in practice: it's rarely "forgot all three at once." It's usually
+"wrote two of the three correctly, and the class still isn't safe" -- because all three are required together, not
+individually. Add the missing `operator=`.

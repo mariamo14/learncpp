@@ -1,0 +1,129 @@
+---
+title: "Operator Overloading"
+module: "05-operator-overloading-and-raii"
+order: 2
+summary: "Making your own classes work with +, ==, and << the same way built-in types do -- and where each one has to live to be found at all."
+example:
+  language: cpp
+  stdin: ""
+  code: |
+    #include <iostream>
+
+    class Vector2D {
+    public:
+        double x;
+        double y;
+
+        Vector2D(double vx, double vy) : x(vx), y(vy) {
+        }
+
+        Vector2D operator+(const Vector2D &other) const {
+            return Vector2D(x + other.x, y + other.y);
+        }
+
+        bool operator==(const Vector2D &other) const {
+            return x == other.x && y == other.y;
+        }
+    };
+
+    std::ostream &operator<<(std::ostream &out, const Vector2D &v) {
+        out << "(" << v.x << ", " << v.y << ")";
+        return out;
+    }
+
+    int main() {
+        Vector2D a(1.0, 2.0);
+        Vector2D b(3.0, 4.0);
+        Vector2D c = a + b;
+
+        std::cout << "a = " << a << std::endl;
+        std::cout << "c = " << c << std::endl;
+        std::cout << "a == b? " << (a == b) << std::endl;
+        return 0;
+    }
+---
+
+## Why this matters
+
+`1 + 2` and `1.0 + 2.0` both just work because `+` is built into the language for `int` and `double`. Module 4
+mentioned, without explaining how, that `std::cout << x` works through an *overloaded* `<<` operator -- the same
+mechanism that lets `a + b` on the worked example's two `Vector2D`s produce a sensible result, instead of a
+compile error asking what `+` is supposed to mean for a type you invented. **Operator overloading** is how you
+teach your own classes to participate in the same operator syntax everyone already knows.
+
+## The general shape: `operator` followed by the symbol
+
+```cpp
+Vector2D operator+(const Vector2D &other) const {
+    return Vector2D(x + other.x, y + other.y);
+}
+```
+
+`operator+` is just a function with an unusual name -- `operator` followed directly by the symbol you're
+defining. Written as a **member function** like this, it takes one explicit parameter (`other`, the right-hand
+side); the left-hand side is implicitly `*this`, the same as any other member function. `a + b` is really
+`a.operator+(b)` underneath -- the `+` syntax is just a much more readable way to write that call, resolved by the
+compiler at compile time.
+
+Mark it `const`, exactly as Module 4 covered: `operator+` reads both `Vector2D`s but modifies neither, so the
+promise applies here identically. It returns a **new** `Vector2D` by value -- `a + b` shouldn't change `a` or `b`
+at all, only produce a third value, the same expectation you already have for `1 + 2`.
+
+## `operator==`: comparing member-wise
+
+```cpp
+bool operator==(const Vector2D &other) const {
+    return x == other.x && y == other.y;
+}
+```
+
+Same shape, different return type: `bool`, true when every member matches. There's no automatic member-wise
+comparison the way there's automatic member-wise *copying* (next lesson covers that) -- you write out exactly what
+"equal" means for your type, one member at a time.
+
+## `operator+=`: modifying `*this`, and returning a reference to it
+
+`operator+` produces a brand-new object and leaves both original operands untouched. Its compound cousin,
+`operator+=`, does the opposite on purpose -- it modifies the left-hand object in place:
+
+```cpp
+Vector2D &operator+=(const Vector2D &other) {
+    x += other.x;
+    y += other.y;
+    return *this;
+}
+```
+
+Two differences from `operator+` worth noticing together: it's **not** `const` (it modifies the object it's called
+on, so it can't promise otherwise), and it returns `Vector2D &` -- a reference to `*this`, the same object that
+was just modified, not a new one. Returning `*this` by reference is what lets `a += b += c;` chain the way you'd
+expect, mirroring how built-in `+=` behaves for `int` and `double`. Getting this return type wrong (returning `void`,
+or a copy instead of a reference) compiles, but silently breaks chaining and wastes a copy -- worth writing it this
+exact way as a matter of habit.
+
+## `operator<<` has to be a free function -- and here's why
+
+The worked example's `operator<<` looks different from the other two: it's declared **outside** `Vector2D`
+entirely, taking *two* explicit parameters (`std::ostream &out`, `const Vector2D &v`), not one.
+
+This isn't a style choice -- it's required. `std::cout << a` means "call `operator<<` with `std::cout` as the
+left-hand side and `a` as the right." If `operator<<` were a member function, it would have to be a member of
+whatever type is on the *left* -- which is `std::ostream`, a type you don't own and can't add members to. The only
+way to make `<<` work with `std::ostream` on the left and your type on the right is a **free function** taking
+both operands explicitly. It returns `std::ostream &` -- a reference to the same stream it was given -- so that
+`std::cout << a << std::endl;` can keep chaining further `<<` calls onto the result, exactly the way chained
+`std::cout` calls have worked since Module 4.
+
+The general rule this generalizes to: write an overloaded operator as a **member function** when your class is
+naturally the left-hand operand (`vector + vector`, `account.deposit`-style operators); write it as a **free
+function** when the left-hand operand is something you don't own, or when you want both sides treated
+identically.
+
+## Overload operators for operations that already have an obvious meaning
+
+One piece of judgment worth stating explicitly: overload an operator only when there's already an unambiguous,
+conventional meaning for it on your type -- `+` for vector addition is immediately obvious to any reader; `+` on a
+type where it would mean something surprising (concatenation, merging, anything not analogous to arithmetic
+addition) creates code that *looks* ordinary but does something a reader wouldn't guess. When an operation doesn't
+have that kind of obvious analogy, an ordinarily-named member function communicates intent far better than
+stretching an operator to fit.

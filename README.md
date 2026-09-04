@@ -6,7 +6,7 @@ deploys straight to GitHub Pages.
 
 ## What's here right now
 
-The engine is done and four modules are written end to end:
+The engine is done and five modules are written end to end:
 
 - **Module 1 -- C Foundations**: 7 lessons (your first program, variables & types, operators & expressions,
   logical operators & the ternary, control flow, bitwise operators, `printf`/`scanf`/overflow) -- deliberately
@@ -26,12 +26,17 @@ The engine is done and four modules are written end to end:
   and objects, constructors and the member initializer list, destructors and object lifetime (`new`/`delete` as
   the constructor/destructor-aware alternative to `malloc`/`free`), and encapsulation/`const` member
   functions/`static` members. 19 exercises.
+- **Module 5 -- Operator Overloading & Resource Management**: 5 lessons -- namespaces, operator overloading
+  (member vs. free functions, `operator<<`'s free-function requirement, `operator+=` returning `*this` by
+  reference), copy semantics (the shallow-copy double-free bug, verified live to actually crash, then the deep-copy
+  fix), the Rule of Three/Five & RAII, and move semantics (rvalue references, `std::move`, moved-from state). 17
+  exercises, several using exact stdout ordering to verify constructor/destructor/copy/move call sequences.
 - Split-screen lesson view, CodeSignal-style exercise view, progressive hints, gated reference solutions.
 - Sidebar with per-lesson checkmarks and an overall progress bar.
 - Progress persists in `localStorage`, with export/import to a JSON file (there's no server, so this is the only
   backup mechanism -- export before you clear browser data).
 
-Modules 4-10 exist as roadmap entries (title, description, "coming soon") on the home page but have no lesson
+Modules 6-10 exist as roadmap entries (title, description, "coming soon") on the home page but have no lesson
 content yet. Content-only PRs adding one module at a time is the intended way to fill them in -- the engine doesn't
 need to change for that, only files under `src/content/`.
 

@@ -1,0 +1,77 @@
+---
+title: "Two applyRate Functions"
+lesson: "05-operator-overloading-and-raii/01-namespaces"
+order: 2
+difficulty: "medium"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  namespace finance {
+      double applyRate(double principal, double rate) {
+          return principal * rate;
+      }
+  }
+
+  namespace physics {
+      // TODO: define applyRate(double distance, double rate) here too,
+      // returning distance * rate. The same name as finance::applyRate
+      // is fine -- they're in different namespaces.
+  }
+
+  int main() {
+      double a, b;
+      std::cin >> a >> b;
+      std::cout << "finance: " << finance::applyRate(a, b) << std::endl;
+      std::cout << "physics: " << physics::applyRate(a, b) << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: 10, 2"
+    stdin: "10 2"
+    expectedOutput: |
+      finance: 20
+      physics: 20
+    hidden: false
+  - name: "different values"
+    stdin: "5 3"
+    expectedOutput: |
+      finance: 15
+      physics: 15
+    hidden: true
+  - name: "zero"
+    stdin: "0 100"
+    expectedOutput: |
+      finance: 0
+      physics: 0
+    hidden: true
+hints:
+  - "This is exactly the lesson's worked example -- copy the shape of finance::applyRate, change nothing but which namespace it's declared inside."
+solution: |
+  #include <iostream>
+
+  namespace finance {
+      double applyRate(double principal, double rate) {
+          return principal * rate;
+      }
+  }
+
+  namespace physics {
+      double applyRate(double distance, double rate) {
+          return distance * rate;
+      }
+  }
+
+  int main() {
+      double a, b;
+      std::cin >> a >> b;
+      std::cout << "finance: " << finance::applyRate(a, b) << std::endl;
+      std::cout << "physics: " << physics::applyRate(a, b) << std::endl;
+      return 0;
+  }
+---
+
+Define `physics::applyRate` alongside the already-complete `finance::applyRate` -- same name, same parameter
+types, same formula, living in a different namespace. Without namespaces, this would be a flat redefinition error,
+identical to Module 3's `is_even` exercise; with them, both coexist and `main` calls each one unambiguously by its
+qualified name.

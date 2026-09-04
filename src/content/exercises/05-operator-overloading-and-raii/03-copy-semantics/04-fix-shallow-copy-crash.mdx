@@ -1,0 +1,103 @@
+---
+title: "Fix: Shallow Copy Crash"
+lesson: "05-operator-overloading-and-raii/03-copy-semantics"
+order: 4
+difficulty: "hard"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class Buffer {
+  public:
+      int *data;
+      int size;
+
+      Buffer(int n) : data(new int[n]), size(n) {
+          for (int i = 0; i < n; i++) {
+              data[i] = i;
+          }
+      }
+
+      ~Buffer() {
+          delete[] data;
+      }
+  };
+
+  int main() {
+      int n;
+      std::cin >> n;
+      Buffer a(n);
+      Buffer b = a;
+
+      b.data[0] = 999;
+
+      std::cout << "a.data[0] = " << a.data[0] << std::endl;
+      std::cout << "b.data[0] = " << b.data[0] << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: n=3"
+    stdin: "3"
+    expectedOutput: |
+      a.data[0] = 0
+      b.data[0] = 999
+    hidden: false
+  - name: "single element"
+    stdin: "1"
+    expectedOutput: |
+      a.data[0] = 0
+      b.data[0] = 999
+    hidden: true
+  - name: "larger buffer"
+    stdin: "5"
+    expectedOutput: |
+      a.data[0] = 0
+      b.data[0] = 999
+    hidden: true
+solution: |
+  #include <iostream>
+
+  class Buffer {
+  public:
+      int *data;
+      int size;
+
+      Buffer(int n) : data(new int[n]), size(n) {
+          for (int i = 0; i < n; i++) {
+              data[i] = i;
+          }
+      }
+
+      Buffer(const Buffer &other) : data(new int[other.size]), size(other.size) {
+          for (int i = 0; i < size; i++) {
+              data[i] = other.data[i];
+          }
+      }
+
+      ~Buffer() {
+          delete[] data;
+      }
+  };
+
+  int main() {
+      int n;
+      std::cin >> n;
+      Buffer a(n);
+      Buffer b = a;
+
+      b.data[0] = 999;
+
+      std::cout << "a.data[0] = " << a.data[0] << std::endl;
+      std::cout << "b.data[0] = " << b.data[0] << std::endl;
+      return 0;
+  }
+---
+
+This `Buffer` has no copy constructor of its own -- submit it as-is and look closely at the output. `a.data[0]`
+comes out `999`, even though nothing ever wrote to `a` directly, and (if you run it enough times, or check the
+exit behavior) it eventually crashes with a double-free -- exactly the lesson's worked example, unmodified.
+
+The fix is exactly what the previous exercises built: add a deep-copy copy constructor to `Buffer`, so `Buffer b =
+a;` gives `b` its own independent array instead of a second reference to `a`'s. Nothing else in this file needs to
+change -- `main` never assigns to an existing `Buffer` here (there's no `b = a;` with `b` already constructed),
+only the copy constructor is actually exercised.

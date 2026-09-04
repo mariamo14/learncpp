@@ -1,0 +1,117 @@
+---
+title: "Move Semantics: rvalue References & std::move"
+module: "05-operator-overloading-and-raii"
+order: 5
+summary: "Why copying is sometimes wasted work, and how to steal a resource from an object that's about to be destroyed anyway, instead of duplicating it."
+example:
+  language: cpp
+  stdin: ""
+  code: |
+    #include <iostream>
+    #include <utility>
+
+    class Buffer {
+    public:
+        int *data;
+        int size;
+
+        Buffer(int n) : data(new int[n]), size(n) {
+            std::cout << "Constructed" << std::endl;
+        }
+
+        Buffer(const Buffer &other) : data(new int[other.size]), size(other.size) {
+            for (int i = 0; i < size; i++) {
+                data[i] = other.data[i];
+            }
+            std::cout << "Copied" << std::endl;
+        }
+
+        Buffer(Buffer &&other) noexcept : data(other.data), size(other.size) {
+            other.data = nullptr;
+            other.size = 0;
+            std::cout << "Moved" << std::endl;
+        }
+
+        ~Buffer() {
+            delete[] data;
+        }
+    };
+
+    int main() {
+        Buffer a(3);
+        Buffer b = a;
+        Buffer c = std::move(a);
+
+        return 0;
+    }
+---
+
+## Why this matters
+
+Every copy the last two lessons wrote does real work: allocate, then copy every element, one at a time. That work
+is necessary when the original object is still needed afterward. It's **wasted** when the original is about to be
+destroyed anyway -- nothing would ever notice if, instead of duplicating the array, you just *took* it directly.
+That's the entire idea behind **moving**: transferring ownership of a resource instead of duplicating it, for
+situations where the source object's contents don't need to survive.
+
+## lvalues and rvalues: does this expression have a name that outlives this statement?
+
+This is the practical distinction that decides whether a copy or a move happens, without needing the full formal
+theory: an **lvalue** is something with a persistent identity -- a named variable like `a`, which you could take
+the address of and which still exists on the next line. An **rvalue** is a temporary with no name of its own --
+the direct result of `makeSomething()`, a literal `5`, anything about to be discarded the moment the current
+statement ends. `Buffer b = a;` copies, because `a` is an lvalue that's still around afterward. The worked
+example's `Buffer c = std::move(a);` moves -- more on `std::move` itself below.
+
+## The move constructor: `Buffer(Buffer &&other)`
+
+```cpp
+Buffer(Buffer &&other) noexcept : data(other.data), size(other.size) {
+    other.data = nullptr;
+    other.size = 0;
+}
+```
+
+`&&` (not `&`) declares an **rvalue reference** -- a reference that can only bind to an rvalue, precisely the
+"about to be destroyed anyway" situation where stealing is safe. The body does two things, both essential: it
+copies `other.data`'s **pointer value** directly (no `new[]`, no element-by-element loop -- this is the entire
+performance win), and it sets `other.data` to `nullptr` (and `other.size` to `0`) immediately afterward. That
+second part isn't optional -- without it, both `this->data` and `other.data` would hold the same address, and
+`other`'s destructor would `delete[]` memory `this` still owns the moment `other` goes out of scope: the exact
+double-free from two lessons ago, just introduced a different way. Marking it `noexcept` is a promise that moving
+never throws -- worth doing whenever it's true (as it is here), since standard library containers, covered in
+Module 6, specifically check for this promise before deciding it's safe to move your objects instead of copying
+them internally.
+
+## An object that's been moved from is left "empty," not gone
+
+After `Buffer c = std::move(a);`, `a` still exists as a real object -- its destructor will still run at the end of
+`main` -- but it's in a **moved-from state**: `a.data` is `nullptr`, `a.size` is `0`. It's safe to destroy (that's
+exactly what the `nullptr` guarantees -- `delete[] nullptr;` is a well-defined no-op) and safe to assign a new
+value to, but you shouldn't rely on its old contents for anything after moving from it -- they're gone, by design.
+
+## `std::move` doesn't move anything -- it's a cast
+
+`std::move(a)`, from `<utility>`, does not move `a`, free anything, or change `a` in any way by itself. It's
+purely a cast: it tells the compiler "treat this lvalue as an rvalue for overload resolution," which is what makes
+the move constructor (rather than the copy constructor) get selected at that call site. The actual moving happens
+inside whichever move constructor or move assignment operator ends up called -- `std::move` just makes that the
+one chosen, for an lvalue that would otherwise always trigger a copy. Because of this, `std::move(a)` is really a
+promise from you, the caller, that you're done needing `a`'s current contents -- the language doesn't check that
+promise; getting it wrong just means using a moved-from object incorrectly afterward.
+
+## Returning a local variable often moves automatically, with no `std::move` needed
+
+```cpp
+Buffer makeBuffer() {
+    Buffer temp(5);
+    return temp;
+}
+```
+
+`temp` is a local variable -- an lvalue by name -- but the compiler recognizes that it's about to be destroyed the
+instant `makeBuffer` returns, and treats this specific `return` as a move automatically, without you writing
+`std::move(temp)` yourself. (Compilers are often able to skip the move entirely here too, constructing the caller's
+object directly in place -- an optimization called copy elision, worth knowing exists, not worth tracing in
+detail.) Writing `return std::move(temp);` explicitly in a case like this is actually a common anti-pattern: it
+doesn't help, and it can prevent the compiler's own elision from kicking in.

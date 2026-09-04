@@ -1,0 +1,75 @@
+---
+title: "Print a Point"
+lesson: "05-operator-overloading-and-raii/02-operator-overloading"
+order: 3
+difficulty: "medium"
+language: "cpp"
+starter: |
+  #include <iostream>
+
+  class Point2D {
+  public:
+      double x;
+      double y;
+
+      Point2D(double px, double py) : x(px), y(py) {
+      }
+  };
+
+  // TODO: define operator<<(std::ostream &out, const Point2D &p) as a
+  // free function (outside the class) that prints exactly: (x, y)
+  // and returns out.
+
+  int main() {
+      double x, y;
+      std::cin >> x >> y;
+      Point2D p(x, y);
+      std::cout << p << std::endl;
+      return 0;
+  }
+tests:
+  - name: "sample: 1, 2"
+    stdin: "1 2"
+    expectedOutput: "(1, 2)"
+    hidden: false
+  - name: "zeros"
+    stdin: "0 0"
+    expectedOutput: "(0, 0)"
+    hidden: true
+  - name: "negative and fractional"
+    stdin: "-1.5 3"
+    expectedOutput: "(-1.5, 3)"
+    hidden: true
+hints:
+  - "This has to be a free function, not a member of Point2D -- the left-hand operand of << is std::cout (a std::ostream), which you don't own and can't add a member function to."
+  - "std::ostream &operator<<(std::ostream &out, const Point2D &p) {\n    out << \"(\" << p.x << \", \" << p.y << \")\";\n    return out;\n}"
+solution: |
+  #include <iostream>
+
+  class Point2D {
+  public:
+      double x;
+      double y;
+
+      Point2D(double px, double py) : x(px), y(py) {
+      }
+  };
+
+  std::ostream &operator<<(std::ostream &out, const Point2D &p) {
+      out << "(" << p.x << ", " << p.y << ")";
+      return out;
+  }
+
+  int main() {
+      double x, y;
+      std::cin >> x >> y;
+      Point2D p(x, y);
+      std::cout << p << std::endl;
+      return 0;
+  }
+---
+
+Define `operator<<` so `std::cout << p` prints `Point2D p` as `(x, y)`. Write it as a free function, outside the
+class -- exactly the lesson's `Vector2D` example, applied to `Point2D` -- taking the stream and the point as two
+explicit parameters, and returning the stream by reference so `std::cout << p << std::endl;` keeps chaining
+correctly.
