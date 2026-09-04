@@ -47,6 +47,9 @@ topic sequence (C basics → OOP → templates → STL → applied numerics, wit
 early on) is the same broad shape used by most C++ curricula, and nothing here paraphrases or structurally mirrors
 any specific course's text, exercises, or demo code.
 
+This repo's content and code were produced with AI assistance, with every exercise's reference solution and
+expected output verified against a live compiler before being committed.
+
 ## How code execution actually works
 
 This project originally targeted the public [Piston](https://github.com/engineer-man/piston) API
