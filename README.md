@@ -132,3 +132,7 @@ clear error rather than silently rendering wrong.
   compiler-error reading, rather than a live stepper.
 - Grading compares normalized stdout only (trailing whitespace/newline differences are ignored); it does not check
   stderr content, memory safety, or performance.
+
+## License
+
+[MIT](LICENSE) -- use, modify, and redistribute freely.

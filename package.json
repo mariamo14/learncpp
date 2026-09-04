@@ -3,6 +3,7 @@
   "description": "An interactive, auto-graded C++ learning path that runs entirely in the browser and deploys to GitHub Pages.",
   "type": "module",
   "version": "0.0.1",
+  "license": "MIT",
   "engines": {
     "node": ">=22.12.0"
   },
