@@ -49,8 +49,8 @@ any specific course's text, exercises, or demo code.
 
 ## How code execution actually works
 
-The spec for this project called for the public [Piston](https://github.com/engineer-man/piston) API
-(`emkc.org/api/v2/piston`) as the run backend, since it's the commonly cited zero-setup option for this pattern.
+This project originally targeted the public [Piston](https://github.com/engineer-man/piston) API
+(`emkc.org/api/v2/piston`), the commonly cited zero-setup option for browser-based code execution like this.
 **That's no longer usable**: as of February 2026 its `/execute` endpoint went whitelist-only and now returns a 401
 for any unregistered caller (confirmed live while building this -- `/runtimes` still works, `/execute` doesn't).
 
@@ -116,9 +116,9 @@ src/content/
 ```
 
 `tests[]` entries are `{ name, stdin, expectedOutput, hidden }`. Non-hidden ("sample") tests show the learner the
-exact stdin/expected/actual diff on failure; hidden ones only ever report pass/fail, per the spec's "no leaking
-hidden test details" requirement. Put at least one non-hidden sample test in every exercise -- it's also what the
-`Run` button (as opposed to `Submit`) executes against.
+exact stdin/expected/actual diff on failure; hidden ones only ever report pass/fail, so a learner can't reverse-
+engineer the hidden cases from failure output. Put at least one non-hidden sample test in every exercise -- it's
+also what the `Run` button (as opposed to `Submit`) executes against.
 
 The schema is enforced by Zod in `src/content.config.ts`; a malformed frontmatter field fails the build with a
 clear error rather than silently rendering wrong.
@@ -127,8 +127,8 @@ clear error rather than silently rendering wrong.
 
 - Compiler Explorer is a shared free resource with no uptime SLA, same as Piston was -- expect occasional
   rate-limiting or downtime, which surfaces as the inline backend-error message described above.
-- No live in-browser debugger (real `gdb`/`lldb` in a browser is heavy and out of scope here, per the original
-  spec). Module 3 (Build Tooling & Debugging Literacy, not yet written) is intended to teach debugger concepts via
-  annotated read-only transcripts and compiler-error reading rather than a live stepper.
+- No live in-browser debugger -- real `gdb`/`lldb` in a browser is heavy and out of scope. Module 3 (Build Tooling
+  & Debugging Literacy) teaches debugger concepts instead through annotated read-only transcripts and real
+  compiler-error reading, rather than a live stepper.
 - Grading compares normalized stdout only (trailing whitespace/newline differences are ignored); it does not check
   stderr content, memory safety, or performance.
